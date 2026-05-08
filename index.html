@@ -281,8 +281,8 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
       </button>
     </section>
 
-    <!-- ===== Grid-based table — header + rows share .tgrid for guaranteed alignment ===== -->
-    <div class="rounded-xl border bg-card shadow-sm overflow-hidden">
+    <!-- ===== Desktop list (≥1024px) ===== -->
+    <div class="hidden lg:block rounded-xl border bg-card shadow-sm overflow-hidden">
 
       <!-- Header -->
       <div class="tgrid bg-muted/40 h-10 px-4 border-b text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -739,6 +739,196 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
           </div>
         </div>
       </div>
+
+    </div>
+
+    <!-- ===== Mobile cards (<1024px) ===== -->
+    <div class="lg:hidden space-y-3">
+
+      <!-- Card: Sasha Hodler · pending -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="pending">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">SH</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium truncate">Sasha Hodler</div>
+            <div class="text-xs text-muted-foreground truncate">@sashahodler</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Video</span>
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Thread</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">412K</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">1,240</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">3.41%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$5,000</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-success font-medium tabular-nums">+24.5</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-values="[1216,1212,1218,1220,1215,1222,1225,1220,1218,1224,1228,1230,1226,1228,1232,1230,1228,1232,1235,1233,1230,1234,1238,1236,1234,1238,1240,1239,1237,1240]"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Vitalik Krypto · approved -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="approved">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">VK</div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1 font-medium truncate">Vitalik Krypto
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="hsl(234 95% 49%)" class="shrink-0"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>
+            </div>
+            <div class="text-xs text-muted-foreground truncate">@vitalikkrypto</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Video</span>
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Thread</span>
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Live</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">2.1M</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">3,840</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">4.92%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$24,000</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-success font-medium tabular-nums">+58.1</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-values="[3782,3795,3790,3805,3810,3800,3815,3820,3812,3818,3825,3818,3812,3820,3825,3815,3820,3828,3826,3820,3825,3830,3828,3822,3830,3835,3832,3838,3836,3840]"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Maya Nakamoto · declined -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="declined">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">MN</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium truncate">Maya Nakamoto</div>
+            <div class="text-xs text-muted-foreground truncate">@mayanakamoto</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Thread</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">96K</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">620</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">1.85%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$2,500</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-destructive font-medium tabular-nums">-12.4</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-trend="down" data-values="[632,638,635,640,634,632,630,628,632,635,628,625,628,632,628,624,626,624,620,624,626,622,620,624,622,618,621,623,621,620]"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Daria Chain · pending -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="pending">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">DC</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium truncate">Daria Chain</div>
+            <div class="text-xs text-muted-foreground truncate">@dariachain</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Video</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">248K</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">1,560</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">2.74%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$3,200</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-success font-medium tabular-nums">+9.2</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-values="[1551,1548,1552,1555,1550,1554,1558,1554,1551,1556,1559,1554,1557,1561,1556,1558,1554,1559,1561,1557,1555,1559,1562,1558,1556,1560,1563,1558,1561,1560]"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Ryo Kondo · approved -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="approved">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">RK</div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1 font-medium truncate">Ryo Kondo
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="hsl(234 95% 49%)" class="shrink-0"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>
+            </div>
+            <div class="text-xs text-muted-foreground truncate">@ryokondo</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Thread</span>
+          <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium">Live</span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">178K</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">980</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">3.92%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$4,200</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-success font-medium tabular-nums">+18.3</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-values="[962,960,964,966,963,968,970,966,964,968,972,968,970,973,970,972,975,970,973,975,977,973,976,978,975,977,980,977,981,980]"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card: Elena Weth · pending -->
+      <article class="card rounded-xl border bg-card shadow-sm p-4" data-status="pending">
+        <header class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-primary shrink-0">EW</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium truncate">Elena Weth</div>
+            <div class="text-xs text-muted-foreground truncate">@elenaweth</div>
+          </div>
+          <div class="row-status"></div>
+        </header>
+        <div class="mt-3 grid grid-cols-2 gap-3 border-t pt-3">
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</p><p class="text-base font-semibold tabular-nums">62K</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score</p><p class="text-base font-semibold tabular-nums">410</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Engagement</p><p class="text-base font-semibold tabular-nums">2.10%</p></div>
+          <div><p class="text-[10px] uppercase tracking-wider text-muted-foreground">Price (post)</p><p class="text-base font-semibold tabular-nums text-primary">$1,800</p></div>
+        </div>
+        <div class="mt-3 rounded-lg border bg-card">
+          <div class="px-3 pt-2 pb-1 flex items-baseline justify-between">
+            <p class="text-[10px] uppercase tracking-wider text-muted-foreground">Lunar score · 30d</p>
+            <span class="text-xs text-success font-medium tabular-nums">+3.1</span>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="chart" data-values="[407,408,406,409,410,408,407,409,411,408,409,410,411,408,410,412,409,411,409,410,412,410,409,411,412,410,409,411,410,410]"></div>
+          </div>
+        </div>
+      </article>
 
     </div>
 
