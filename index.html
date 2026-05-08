@@ -66,7 +66,12 @@
 }
 
 html, body { height: 100%; }
-body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip; /* prevent any accidental horizontal scroll on small viewports */
+}
 
 /* Preview chrome */
 .previewbar {
@@ -85,7 +90,7 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
 .previewbar .seg button.active { background: hsl(0 0% 96%); color: hsl(0 0% 10%); }
 
 .phone {
-  width: 390px; margin: 32px auto;
+  width: min(390px, calc(100% - 24px)); margin: 32px auto;
   background: white; overflow: hidden;
   border: 1px solid hsl(0 0% 0% / 0.08);
   border-radius: 44px;
@@ -152,20 +157,20 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
   <div class="mx-auto max-w-[1240px] px-4 sm:px-6 py-8 sm:py-12">
 
     <!-- ===== Clean header (no chrome around logos) ===== -->
-    <header class="mb-10">
-      <div class="flex items-center gap-4 mb-7" aria-label="Campaign partners">
-        <img alt="Lunar Strategy" class="h-7 w-auto opacity-95"
+    <header class="mb-6 sm:mb-10">
+      <div class="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-7 flex-wrap" aria-label="Campaign partners">
+        <img alt="Lunar Strategy" class="h-6 sm:h-7 w-auto opacity-95"
              src="https://cdn.prod.website-files.com/684807441792526c9388329c/6848195a5531260e598aedaf_Logo.svg" />
         <span class="text-muted-foreground/50 text-base font-light tracking-wide">×</span>
-        <svg viewBox="0 0 130 32" width="106" height="24" aria-label="Ozean">
+        <svg viewBox="0 0 130 32" class="h-5 sm:h-6 w-auto" aria-label="Ozean">
           <path d="M3 18 Q 9 9, 15 18 T 27 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>
           <text x="36" y="24" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800" letter-spacing="0.5" fill="currentColor">OZEAN</text>
         </svg>
       </div>
 
       <p class="text-xs font-semibold tracking-[0.14em] uppercase text-muted-foreground mb-2.5">Creator shortlist</p>
-      <h1 class="text-4xl sm:text-5xl lg:text-[56px] font-semibold tracking-tight leading-[1.05]">Ozean Q2 Launch</h1>
-      <p class="mt-4 text-base sm:text-[17px] leading-relaxed text-muted-foreground max-w-2xl">
+      <h1 class="text-3xl sm:text-5xl lg:text-[56px] font-semibold tracking-tight leading-[1.05]">Ozean Q2 Launch</h1>
+      <p class="mt-3 sm:mt-4 text-sm sm:text-[17px] leading-relaxed text-muted-foreground max-w-2xl">
         Review the recommended creators below, set status, and explore each pick's recent performance trend.
         Changes save automatically.
       </p>
@@ -174,13 +179,15 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
     <!-- ===== KPIs (shadcn SectionCards) ===== -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" aria-label="Campaign status">
 
-      <div class="@container/card relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
-        <div class="p-6 pb-0">
-          <p class="text-sm text-muted-foreground">Reviewed</p>
-          <p class="mt-1 text-3xl font-semibold tabular-nums leading-none tracking-tight">3 <span class="text-muted-foreground/60 font-medium">/ 6</span></p>
-          <span class="absolute top-5 right-5 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums">50%</span>
+      <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="p-5 pb-0">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm text-muted-foreground">Reviewed</p>
+            <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums shrink-0">50%</span>
+          </div>
+          <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">3 <span class="text-muted-foreground/60 font-medium">/ 6</span></p>
         </div>
-        <div class="p-6 pt-3 space-y-1.5 text-sm">
+        <div class="p-5 pt-3 space-y-1.5 text-sm">
           <p class="font-medium leading-none flex items-center gap-1.5">3 still pending
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </p>
@@ -188,28 +195,32 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
         </div>
       </div>
 
-      <div class="@container/card relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
-        <div class="p-6 pb-0">
-          <p class="text-sm text-muted-foreground">Approved value</p>
-          <p class="mt-1 text-3xl font-semibold tabular-nums leading-none tracking-tight">$28,200</p>
-          <span class="absolute top-5 right-5 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            2 picks
-          </span>
+      <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="p-5 pb-0">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm text-muted-foreground">Approved value</p>
+            <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              2 picks
+            </span>
+          </div>
+          <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">$28,200</p>
         </div>
-        <div class="p-6 pt-3 space-y-1.5 text-sm">
+        <div class="p-5 pt-3 space-y-1.5 text-sm">
           <p class="font-medium leading-none">+ $10,000 if all pending approve</p>
           <p class="text-muted-foreground">Sum of post rate cards</p>
         </div>
       </div>
 
-      <div class="@container/card relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
-        <div class="p-6 pb-0">
-          <p class="text-sm text-muted-foreground">Budget remaining</p>
-          <p class="mt-1 text-3xl font-semibold tabular-nums leading-none tracking-tight">$21,800</p>
-          <span class="absolute top-5 right-5 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums">of $50K</span>
+      <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="p-5 pb-0">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm text-muted-foreground">Budget remaining</p>
+            <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums shrink-0">of $50K</span>
+          </div>
+          <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">$21,800</p>
         </div>
-        <div class="p-6 pt-3 space-y-2.5 text-sm">
+        <div class="p-5 pt-3 space-y-2.5 text-sm">
           <div class="h-1.5 w-full rounded-full bg-secondary overflow-hidden flex">
             <div style="width: 56.4%" class="bg-primary"></div>
           </div>
@@ -217,16 +228,18 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
         </div>
       </div>
 
-      <div class="@container/card relative rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
-        <div class="p-6 pb-0">
-          <p class="text-sm text-muted-foreground">Avg. Lunar score</p>
-          <p class="mt-1 text-3xl font-semibold tabular-nums leading-none tracking-tight">1,948</p>
-          <span class="absolute top-5 right-5 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
-            +18%
-          </span>
+      <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="p-5 pb-0">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-sm text-muted-foreground">Avg. Lunar score</p>
+            <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+              +18%
+            </span>
+          </div>
+          <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">1,948</p>
         </div>
-        <div class="p-6 pt-3 space-y-1.5 text-sm">
+        <div class="p-5 pt-3 space-y-1.5 text-sm">
           <p class="font-medium leading-none">Score trending up</p>
           <p class="text-muted-foreground">vs. last 30 days · 2.1M reach</p>
         </div>
@@ -236,7 +249,7 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
     <!-- ===== Toolbar ===== -->
     <section class="mb-3 flex flex-wrap items-center gap-3">
       <div role="tablist" id="filter-tabs"
-           class="inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+           class="inline-flex items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground max-w-full overflow-x-auto whitespace-nowrap">
         <button data-filter="all" data-active="true" role="tab" aria-selected="true"
                 class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition data-[active=true]:bg-background data-[active=true]:text-foreground data-[active=true]:shadow-sm">
           All <span class="rounded bg-background/60 px-1.5 py-0.5 text-xs tabular-nums">6</span>
@@ -255,29 +268,30 @@ body { font-feature-settings: "ss01", "cv11"; -webkit-font-smoothing: antialiase
         </button>
       </div>
 
-      <div class="relative ml-auto flex-1 sm:flex-none sm:w-64">
+      <div class="relative w-full sm:ml-auto sm:w-64 order-3 sm:order-none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="search" placeholder="Search creators…"
                class="h-9 w-full rounded-md border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" />
       </div>
 
-      <div class="relative">
+      <div class="relative order-2 sm:order-none">
         <select aria-label="Sort"
                 class="h-9 appearance-none rounded-md border border-input bg-card pl-3 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring/30">
-          <option>Default order</option>
+          <option>Default</option>
           <option>Followers</option>
           <option>Lunar score</option>
           <option>Engagement</option>
-          <option>Price (low → high)</option>
+          <option>Price ↑</option>
         </select>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
-      <button class="inline-flex items-center gap-1.5 h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition">
+      <button class="inline-flex items-center gap-1.5 h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition order-2 sm:order-none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Approve all visible (3)
+        <span class="sm:hidden">Approve all (3)</span>
+        <span class="hidden sm:inline">Approve all visible (3)</span>
       </button>
     </section>
 
