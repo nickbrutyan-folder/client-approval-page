@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Creator OS — Client lists</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["-apple-system","BlinkMacSystemFont","SF Pro Display","SF Pro Text","Inter","Helvetica Neue","system-ui","sans-serif"],
+        },
+        colors: {
+          border: "hsl(var(--border))",
+          input: "hsl(var(--input))",
+          ring: "hsl(var(--ring))",
+          background: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+          secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
+          muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+          accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+          destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
+          success: { DEFAULT: "hsl(var(--success))", foreground: "hsl(var(--success-foreground))" },
+          card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+          sidebar: { DEFAULT: "hsl(var(--sidebar))", foreground: "hsl(var(--sidebar-foreground))", accent: "hsl(var(--sidebar-accent))", "accent-foreground": "hsl(var(--sidebar-accent-foreground))", border: "hsl(var(--sidebar-border))" },
+        },
+        borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+      },
+    },
+  };
+</script>
+
+<style>
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 166 70% 23%;          /* Lunar green */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 73% 41%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 152 60% 36%;
+  --success-foreground: 0 0% 100%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 166 70% 23%;
+  --sidebar: 210 20% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-accent: 220 14% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+  --radius: 0.625rem;
+}
+
+html, body { height: 100%; }
+body { font-feature-settings: "ss01","cv11"; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip; }
+
+.previewbar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  padding: .625rem 1rem;
+  background: hsl(222 47% 8% / .92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  color: hsl(0 0% 96%);
+  border-bottom: 1px solid hsl(0 0% 100% / .08);
+  font-size: 13px;
+}
+
+/* sidebar */
+.shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 44px); }
+.shell.collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.shell.collapsed .sidebar .label,
+.shell.collapsed .sidebar .group-title,
+.shell.collapsed .sidebar .list-item,
+.shell.collapsed .sidebar .footer-text,
+.shell.collapsed .sidebar .brand-wordmark { display: none; }
+.shell.collapsed .sidebar .nav-button { justify-content: center; padding-left: 0; padding-right: 0; }
+
+@media (max-width: 1024px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+/* dropdown menu */
+.menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 30; min-width: 180px; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); box-shadow: 0 12px 24px hsl(222 47% 8% / .08), 0 4px 8px hsl(222 47% 8% / .04); padding: 4px; display: none; }
+.menu.open { display: block; animation: popIn 120ms cubic-bezier(0.32,0.72,0,1); }
+@keyframes popIn { from { opacity: 0; transform: translateY(-4px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body class="bg-background text-foreground font-sans">
+
+<div class="previewbar">
+  <strong class="text-emerald-300 mr-1 font-semibold">● Preview · Client lists v1</strong>
+  <span class="opacity-70">redesign of /lists page · cleaner cards · primary/secondary action hierarchy</span>
+  <div class="ml-auto"></div>
+  <button id="toggle-sidebar" class="text-xs font-medium px-3 py-1 rounded-md bg-white/10 hover:bg-white/15 transition">Toggle sidebar</button>
+</div>
+
+<div class="shell" id="shell">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div class="px-3 py-4 flex items-center gap-2.5 border-b border-sidebar-border">
+      <div class="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14H3"/><path d="M21 10H3"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="18" r="2"/></svg>
+      </div>
+      <div class="brand-wordmark min-w-0">
+        <div class="font-semibold text-sm leading-none">Creator Wire</div>
+        <div class="text-[11px] text-muted-foreground mt-0.5 leading-none">by Lunar Strategy</div>
+      </div>
+    </div>
+
+    <div class="px-3 pt-3 pb-2">
+      <button class="nav-button w-full inline-flex items-center gap-2 h-9 px-3 rounded-md border border-sidebar-border bg-sidebar text-muted-foreground text-sm hover:bg-sidebar-accent transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="label flex-1 text-left">Search…</span>
+        <kbd class="label inline-flex h-5 items-center rounded border border-sidebar-border bg-sidebar px-1.5 text-[10px] font-mono">⌘K</kbd>
+      </button>
+    </div>
+
+    <nav class="px-3 pb-2">
+      <p class="group-title px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Navigation</p>
+      <a href="admin.html" class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 16h5"/><path d="M8 8h8"/></svg>
+        <span class="label flex-1 text-left">Creators</span>
+        <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">84</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium bg-primary/10 text-primary transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22V12"/><path d="M21 7 12 12 3 7"/><path d="M21 17 12 22 3 17"/><path d="M3 7v10"/><path d="M21 7v10"/><path d="M12 2 3 7l9 5 9-5z"/></svg>
+        <span class="label flex-1 text-left">Client lists</span>
+        <span class="label inline-flex h-5 items-center rounded bg-primary/20 text-primary px-1.5 text-[10px] font-medium tabular-nums">6/10</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span class="label">Refreshes</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </button>
+    </nav>
+
+    <div class="px-3 mt-1 pb-2 flex-1 overflow-y-auto">
+      <div class="flex items-center justify-between px-2 mb-1">
+        <p class="group-title text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Recent lists</p>
+      </div>
+      <div class="space-y-0.5">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-primary/10 text-primary text-[10px] font-semibold inline-flex items-center justify-center shrink-0">L</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">Limitless</span>
+            <span class="block text-[11px] text-muted-foreground truncate">65 creators · 6 approved</span>
+          </span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-blue-100 text-blue-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">T</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">tethermax</span>
+            <span class="block text-[11px] text-muted-foreground truncate">7 creators · 4 approved</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-success"></span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-orange-100 text-orange-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">A</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">ADI</span>
+            <span class="block text-[11px] text-muted-foreground truncate">5 creators · 3 pending</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="px-3 py-2 border-t border-sidebar-border">
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-sidebar-accent/60">
+        <span class="h-2 w-2 rounded-full bg-success shrink-0 relative">
+          <span class="absolute inset-0 rounded-full bg-success animate-ping opacity-50"></span>
+        </span>
+        <span class="footer-text flex-1 min-w-0">
+          <span class="block text-[11px] text-muted-foreground leading-none">Last refresh</span>
+          <span class="block text-xs font-medium leading-none mt-0.5">May 10, 5:07 AM</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="px-3 py-3 border-t border-sidebar-border">
+      <button class="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+        <span class="h-8 w-8 rounded-full bg-primary/15 text-primary text-xs font-semibold inline-flex items-center justify-center shrink-0">NB</span>
+        <span class="footer-text flex-1 min-w-0 text-left">
+          <span class="block text-sm font-medium truncate leading-none">Nick Brutyan</span>
+          <span class="block text-[11px] text-muted-foreground truncate leading-none mt-1">nick.b@lunarstrategy.com</span>
+        </span>
+        <svg class="footer-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="min-w-0 flex flex-col">
+
+    <!-- Top bar -->
+    <header class="h-14 border-b bg-card px-4 sm:px-6 flex items-center gap-3 sticky top-0 z-30">
+      <div class="flex items-center gap-2 min-w-0 text-sm text-muted-foreground">
+        <a href="admin.html" class="hover:text-foreground transition">Dashboard</a>
+        <span class="text-muted-foreground/50">/</span>
+        <span class="text-foreground font-medium">Client lists</span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="hidden sm:inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          Sort: Recent
+        </button>
+        <button class="inline-flex items-center gap-1.5 h-8 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>New list</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 px-4 sm:px-6 py-6 space-y-5">
+
+      <!-- Page heading -->
+      <section class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight">Client lists</h1>
+          <p class="mt-1 text-sm text-muted-foreground">Shareable creator shortlists. Each link expires 90 days after creation unless revoked.</p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary border border-primary/20 px-3 h-8 text-xs font-semibold tabular-nums">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+          6 of 10 active
+        </span>
+      </section>
+
+      <!-- Quick stats -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-xs text-muted-foreground">Active lists</p>
+          <p class="mt-1 text-2xl font-semibold tabular-nums tracking-tight">6<span class="text-muted-foreground/60 font-medium"> / 10</span></p>
+          <p class="mt-1 text-[11px] text-muted-foreground">4 spots remaining</p>
+        </article>
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-xs text-muted-foreground">Creators shared</p>
+          <p class="mt-1 text-2xl font-semibold tabular-nums tracking-tight">91</p>
+          <p class="mt-1 text-[11px] text-muted-foreground">across all lists</p>
+        </article>
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-xs text-muted-foreground">Total approved</p>
+          <p class="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-success">15</p>
+          <p class="mt-1 text-[11px] text-muted-foreground">68 pending · 8 declined</p>
+        </article>
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-xs text-muted-foreground">Pipeline value</p>
+          <p class="mt-1 text-2xl font-semibold tabular-nums tracking-tight">$257K</p>
+          <p class="mt-1 text-[11px] text-muted-foreground">sum of list budgets</p>
+        </article>
+      </section>
+
+      <!-- Cards grid -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="cards-grid">
+        <!-- list cards rendered via JS -->
+
+        <!-- + New list tile -->
+        <button class="rounded-xl border-2 border-dashed border-border bg-card/40 p-5 min-h-[280px] flex flex-col items-center justify-center gap-3 hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition text-muted-foreground group">
+          <div class="h-12 w-12 rounded-full bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary inline-flex items-center justify-center transition">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="text-center">
+            <p class="font-semibold text-sm text-foreground group-hover:text-primary">Create a new list</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Select creators from the dashboard → share a link with your client</p>
+          </div>
+        </button>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== Delete confirmation modal ===== -->
+<div id="confirm-mask" class="fixed inset-0 bg-foreground/35 backdrop-blur-sm z-[100] hidden items-center justify-center px-4">
+  <div class="bg-card rounded-2xl border w-full max-w-md p-6 shadow-2xl">
+    <div class="flex items-start gap-3">
+      <div class="h-10 w-10 rounded-full bg-destructive/10 text-destructive inline-flex items-center justify-center shrink-0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-lg font-semibold leading-tight">Delete this client list?</h3>
+        <p class="mt-1 text-sm text-muted-foreground">The share link will stop working immediately and all client comments and approval status will be permanently lost. This can't be undone.</p>
+      </div>
+    </div>
+    <div class="mt-5 flex items-center justify-end gap-2">
+      <button class="h-9 inline-flex items-center rounded-md border bg-card px-3 text-sm font-medium hover:bg-muted transition" id="confirm-cancel">Cancel</button>
+      <button class="h-9 inline-flex items-center gap-1.5 rounded-md bg-destructive px-3 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        Delete list
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============== DATA ==============
+  const lists = [
+    { id:"limitless", name:"Limitless",        logoBg:"bg-foreground", logoText:"text-card", initials:"L",  brandImg:null, total:65, approved:6,  pending:56, declined:3, budget:"USD 120,000", updated:"2 days ago", expires:"Jul 10, 2026" },
+    { id:"tethermax", name:"tethermax",        logoBg:"bg-blue-600",   logoText:"text-white", initials:"∞",  brandImg:null, total:7,  approved:4,  pending:1,  declined:2, budget:"USD 65,000",  updated:"yesterday", expires:"Aug 02, 2026" },
+    { id:"adi",       name:"ADI",              logoBg:"bg-orange-100", logoText:"text-orange-700", initials:"A", brandImg:null, total:5,  approved:1,  pending:3,  declined:1, budget:"USD 50,000",  updated:"3 hours ago", expires:"Aug 18, 2026" },
+    { id:"cwt",       name:"Creator wire test",logoBg:"bg-emerald-100",logoText:"text-emerald-700", initials:"CW", brandImg:null, total:3,  approved:1,  pending:1,  declined:1, budget:"USD 12,000",  updated:"5 days ago", expires:"Jun 22, 2026" },
+    { id:"lunar",     name:"lunar",            logoBg:"bg-slate-200",  logoText:"text-slate-700", initials:"L", brandImg:null, total:6,  approved:0,  pending:5,  declined:1, budget:"USD 5,000",   updated:"1 week ago", expires:"Jun 02, 2026" },
+    { id:"shann",     name:"shann banan",      logoBg:"bg-rose-100",   logoText:"text-rose-700", initials:"SB", brandImg:null, total:5,  approved:3,  pending:2,  declined:0, budget:"USD 5,000",   updated:"yesterday", expires:"Aug 04, 2026" },
+  ];
+
+  // Calculate progress %
+  function pctApproved(list) { return Math.round((list.approved / list.total) * 100); }
+  function pctDeclined(list) { return Math.round((list.declined / list.total) * 100); }
+
+  const grid = document.getElementById('cards-grid');
+  const cardsHtml = lists.map(l => {
+    const approvedPct = (l.approved / l.total) * 100;
+    const declinedPct = (l.declined / l.total) * 100;
+    const isReady = l.pending === 0;
+    return `
+    <article class="rounded-xl border bg-card shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+      <!-- Header -->
+      <div class="px-5 pt-5 pb-4 flex items-start gap-3">
+        <span class="h-12 w-12 rounded-lg ${l.logoBg} ${l.logoText} text-base font-semibold inline-flex items-center justify-center shrink-0">${l.initials}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold leading-none">Client list</p>
+          <h3 class="mt-1.5 text-lg font-semibold leading-tight truncate">${l.name}</h3>
+          <p class="mt-1 text-xs text-muted-foreground">${l.total} creators · ${l.budget}</p>
+        </div>
+        <div class="relative">
+          <button class="menu-trigger h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition" data-id="${l.id}" title="More options">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+          <div class="menu" role="menu">
+            <button class="menu-item flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit list
+            </button>
+            <button class="menu-item flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Rotate share link
+            </button>
+            <button class="menu-item flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-sm hover:bg-accent transition">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              Revoke access
+            </button>
+            <hr class="my-1 border-border">
+            <button class="menu-item delete-btn flex items-center gap-2 w-full px-2.5 py-1.5 rounded-md text-sm text-destructive hover:bg-destructive/10 transition" data-id="${l.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              Delete list
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="px-5 pb-3 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-muted-foreground">Approval progress</span>
+          <span class="font-medium tabular-nums">${l.approved}/${l.total} approved</span>
+        </div>
+        <div class="h-1.5 w-full rounded-full bg-muted overflow-hidden flex">
+          <div class="bg-success" style="width: ${approvedPct}%"></div>
+          <div class="bg-destructive/70" style="width: ${declinedPct}%"></div>
+        </div>
+        <div class="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-success"></span>${l.approved} approved</span>
+          <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/50"></span>${l.pending} pending</span>
+          <span class="inline-flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-destructive/70"></span>${l.declined} declined</span>
+        </div>
+      </div>
+
+      <!-- Meta + Actions -->
+      <div class="mt-auto border-t px-5 py-3.5 flex items-center gap-2">
+        <div class="flex-1 min-w-0">
+          <p class="text-[11px] text-muted-foreground truncate">Updated ${l.updated} · expires ${l.expires}</p>
+        </div>
+        <button class="copy-btn h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-muted-foreground hover:bg-muted hover:text-foreground transition" data-url="https://admin.creatorwire.xyz/lists/${l.id}" title="Copy share link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <a href="#" class="inline-flex items-center gap-1.5 h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition">
+          Open share link
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </article>
+    `;
+  }).join('');
+
+  // Insert cards BEFORE the "+ New list" tile (the existing last child)
+  const newTile = grid.firstElementChild;
+  grid.insertAdjacentHTML('afterbegin', cardsHtml);
+
+  // ============== INTERACTIONS ==============
+  // Sidebar toggle
+  document.getElementById('toggle-sidebar').addEventListener('click', () => document.getElementById('shell').classList.toggle('collapsed'));
+
+  // Overflow menus
+  function closeAllMenus() { document.querySelectorAll('.menu').forEach(m => m.classList.remove('open')); }
+  document.querySelectorAll('.menu-trigger').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = btn.nextElementSibling;
+      const wasOpen = menu.classList.contains('open');
+      closeAllMenus();
+      if (!wasOpen) menu.classList.add('open');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.menu, .menu-trigger')) closeAllMenus();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllMenus(); });
+
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.url);
+        btn.classList.add('text-success');
+        setTimeout(() => btn.classList.remove('text-success'), 1200);
+      } catch {}
+    });
+  });
+
+  // Delete confirmation
+  const confirmMask = document.getElementById('confirm-mask');
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeAllMenus();
+      confirmMask.classList.remove('hidden');
+      confirmMask.classList.add('flex');
+    });
+  });
+  document.getElementById('confirm-cancel').addEventListener('click', () => {
+    confirmMask.classList.add('hidden');
+    confirmMask.classList.remove('flex');
+  });
+  confirmMask.addEventListener('click', (e) => {
+    if (e.target === confirmMask) {
+      confirmMask.classList.add('hidden');
+      confirmMask.classList.remove('flex');
+    }
+  });
+</script>
+
+</body>
+</html>
