@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Creator OS — Campaigns redesign</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        fontFamily: { sans: ["-apple-system","BlinkMacSystemFont","SF Pro Display","SF Pro Text","Inter","Helvetica Neue","system-ui","sans-serif"] },
+        colors: {
+          border: "hsl(var(--border))", input: "hsl(var(--input))", ring: "hsl(var(--ring))",
+          background: "hsl(var(--background))", foreground: "hsl(var(--foreground))",
+          primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+          secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
+          muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+          accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+          destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
+          success: { DEFAULT: "hsl(var(--success))", foreground: "hsl(var(--success-foreground))" },
+          warning: { DEFAULT: "hsl(var(--warning))", foreground: "hsl(var(--warning-foreground))" },
+          card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+          sidebar: { DEFAULT: "hsl(var(--sidebar))", foreground: "hsl(var(--sidebar-foreground))", accent: "hsl(var(--sidebar-accent))", "accent-foreground": "hsl(var(--sidebar-accent-foreground))", border: "hsl(var(--sidebar-border))" },
+        },
+        borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+      },
+    },
+  };
+</script>
+
+<style>
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 166 70% 23%;            /* Lunar green */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 73% 41%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 152 60% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 166 70% 23%;
+  --sidebar: 210 20% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-accent: 220 14% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+  --radius: 0.625rem;
+}
+
+html, body { height: 100%; }
+body { font-feature-settings: "ss01","cv11"; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip; }
+
+.previewbar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  padding: .625rem 1rem;
+  background: hsl(222 47% 8% / .92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  color: hsl(0 0% 96%);
+  border-bottom: 1px solid hsl(0 0% 100% / .08);
+  font-size: 13px;
+}
+.previewbar .seg { display: inline-flex; padding: 2px; border: 1px solid hsl(0 0% 100% / .12); border-radius: 8px; background: hsl(0 0% 100% / .04); }
+.previewbar .seg button { padding: 5px 12px; font-size: 12px; font-weight: 500; border-radius: 6px; color: hsl(0 0% 84%); background: transparent; border: 0; cursor: pointer; transition: all 120ms; }
+.previewbar .seg button.active { background: hsl(0 0% 96%); color: hsl(0 0% 10%); }
+
+.shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 44px); }
+.shell.collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.shell.collapsed .sidebar .label { display: none; }
+.shell.collapsed .sidebar .nav-button { justify-content: center; padding-left: 0; padding-right: 0; }
+.shell.collapsed .sidebar .brand-wordmark { display: none; }
+.shell.collapsed .sidebar .group-title { display: none; }
+.shell.collapsed .sidebar .list-item { display: none; }
+.shell.collapsed .sidebar .footer-text { display: none; }
+
+@media (max-width: 1024px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* sheet (right side panel) */
+.sheet-mask { position: fixed; inset: 0; background: hsl(222 47% 8% / .35); backdrop-filter: blur(2px); z-index: 70; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+.sheet-mask.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100vw); background: hsl(var(--card)); border-left: 1px solid hsl(var(--border)); box-shadow: -24px 0 48px hsl(222 47% 8% / .12); z-index: 71; transform: translateX(100%); transition: transform 220ms cubic-bezier(.32,.72,0,1); display: flex; flex-direction: column; }
+.sheet.open { transform: translateX(0); }
+
+/* modal */
+.modal-mask { position: fixed; inset: 0; background: hsl(222 47% 8% / .45); backdrop-filter: blur(3px); z-index: 80; opacity: 0; pointer-events: none; transition: opacity 180ms ease; display: grid; place-items: center; padding: 1rem; }
+.modal-mask.open { opacity: 1; pointer-events: auto; }
+.modal { width: min(520px, 100%); background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) + 4px); box-shadow: 0 24px 48px hsl(222 47% 8% / .15); transform: translateY(10px) scale(.98); transition: transform 220ms cubic-bezier(.32,.72,0,1); }
+.modal-mask.open .modal { transform: translateY(0) scale(1); }
+
+/* segmented (tabs) */
+.tabs { display: inline-flex; padding: 3px; background: hsl(var(--muted)); border-radius: 8px; gap: 2px; }
+.tabs button { padding: 5px 12px; font-size: 13px; font-weight: 500; border-radius: 6px; color: hsl(var(--muted-foreground)); transition: all 120ms; }
+.tabs button.active { background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 2px hsl(222 47% 8% / .08); }
+.tabs button:hover:not(.active) { color: hsl(var(--foreground)); }
+
+/* filter pill */
+.pill { display: inline-flex; align-items: center; gap: .35rem; height: 28px; padding: 0 10px; font-size: 12.5px; font-weight: 500; border: 1px solid hsl(var(--border)); border-radius: 14px; background: hsl(var(--card)); color: hsl(var(--foreground)); cursor: pointer; transition: all 120ms; }
+.pill:hover { background: hsl(var(--muted) / .6); }
+.pill.active { background: hsl(var(--primary) / .08); border-color: hsl(var(--primary) / .25); color: hsl(var(--primary)); }
+.pill .count { font-variant-numeric: tabular-nums; font-size: 11px; padding: 1px 6px; border-radius: 9px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.pill.active .count { background: hsl(var(--primary) / .15); color: hsl(var(--primary)); }
+
+/* table */
+tbody tr { transition: background 120ms ease; }
+tbody tr:hover { background: hsl(var(--muted) / .5); }
+
+/* status badge */
+.status { display: inline-flex; align-items: center; gap: .35rem; height: 22px; padding: 0 8px; font-size: 11px; font-weight: 600; border-radius: 11px; letter-spacing: .01em; }
+.status .dot { width: 5px; height: 5px; border-radius: 50%; }
+.status.draft { background: hsl(220 14% 93%); color: hsl(220 9% 35%); }
+.status.draft .dot { background: hsl(220 9% 46%); }
+.status.active { background: hsl(166 70% 23% / .1); color: hsl(166 70% 23%); }
+.status.active .dot { background: hsl(166 70% 23%); }
+.status.ready { background: hsl(38 92% 50% / .1); color: hsl(28 80% 38%); }
+.status.ready .dot { background: hsl(38 92% 50%); }
+.status.shipped { background: hsl(217 91% 60% / .1); color: hsl(217 91% 45%); }
+.status.shipped .dot { background: hsl(217 91% 60%); }
+.status.approved { background: hsl(152 60% 36% / .1); color: hsl(152 60% 28%); }
+.status.approved .dot { background: hsl(152 60% 36%); }
+.status.declined { background: hsl(0 73% 41% / .08); color: hsl(0 73% 38%); }
+.status.declined .dot { background: hsl(0 73% 41%); }
+.status.pending { background: hsl(220 14% 93%); color: hsl(220 9% 35%); }
+.status.pending .dot { background: hsl(220 9% 60%); }
+.status.confirmed { background: hsl(282 60% 36% / .1); color: hsl(282 60% 32%); }
+.status.confirmed .dot { background: hsl(282 60% 50%); }
+
+/* sticky toolbar */
+.sticky-toolbar { position: sticky; top: 56px; z-index: 20; background: hsl(var(--background)); }
+.sticky-toolbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: hsl(var(--border)); }
+
+/* progress bar */
+.bar { width: 100%; height: 8px; background: hsl(var(--muted)); border-radius: 999px; overflow: hidden; display: flex; }
+.bar > span { display: block; height: 100%; }
+
+/* table row stripe on shipped */
+.tr-shipped { background: hsl(217 91% 60% / .02); }
+
+/* view toggle (table vs cards) */
+.view-toggle { display: inline-flex; padding: 2px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--card)); }
+.view-toggle button { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 6px; color: hsl(var(--muted-foreground)); }
+.view-toggle button.active { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+
+/* avatar */
+.avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; font-size: 11px; }
+
+/* spark */
+.spark path { fill: none; stroke: hsl(var(--primary)); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.spark .fill { fill: hsl(var(--primary) / .12); stroke: none; }
+
+/* state visibility */
+.view { display: none; }
+.view.active { display: block; }
+
+/* funnel */
+.funnel { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.funnel .step { background: hsl(var(--muted)); border-radius: 8px; padding: 10px 12px; }
+.funnel .step .lbl { font-size: 11px; color: hsl(var(--muted-foreground)); font-weight: 500; }
+.funnel .step .val { font-size: 18px; font-weight: 600; line-height: 1.2; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.funnel .step.gain { background: hsl(166 70% 23% / .06); }
+.funnel .step.gain .val { color: hsl(166 70% 23%); }
+.funnel .step.warn { background: hsl(38 92% 50% / .06); }
+
+/* timeline */
+.tl-row { display: grid; grid-template-columns: 20px 1fr auto; gap: 10px; padding: 8px 0; align-items: start; }
+.tl-row + .tl-row { border-top: 1px dashed hsl(var(--border)); }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; margin-left: 6px; background: hsl(var(--primary)); }
+.tl-dot.muted { background: hsl(var(--muted-foreground)); }
+
+/* round chip on roster */
+.round-chip { display: inline-flex; align-items: center; padding: 1px 6px; font-size: 10.5px; font-weight: 600; border-radius: 4px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); letter-spacing: .02em; }
+
+/* compact list item / hover */
+.row-action { opacity: 0; transition: opacity 120ms; }
+tr:hover .row-action, .row:hover .row-action { opacity: 1; }
+</style>
+</head>
+<body class="bg-background text-foreground font-sans">
+
+<div class="previewbar">
+  <strong class="text-emerald-300 mr-1 font-semibold">● Preview · Campaigns v1</strong>
+  <span class="opacity-70 hidden sm:inline">shadcn dashboard-01 · sidebar-07 · Lunar green</span>
+  <div class="seg ml-2" role="tablist" aria-label="State">
+    <button data-view="hub" class="active">Hub</button>
+    <button data-view="detail">Detail</button>
+    <button data-view="create">Create</button>
+    <button data-view="attach">Attach list</button>
+  </div>
+  <div class="ml-auto"></div>
+  <button id="toggle-sidebar" class="text-xs font-medium px-3 py-1 rounded-md bg-white/10 hover:bg-white/15 transition">Toggle sidebar</button>
+</div>
+
+<div class="shell" id="shell">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div class="px-3 py-4 flex items-center gap-2.5 border-b border-sidebar-border">
+      <div class="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14H3"/><path d="M21 10H3"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="18" r="2"/></svg>
+      </div>
+      <div class="brand-wordmark min-w-0">
+        <div class="font-semibold text-sm leading-none">Creator Wire</div>
+        <div class="text-[11px] text-muted-foreground mt-0.5 leading-none">by Lunar Strategy</div>
+      </div>
+    </div>
+
+    <div class="px-3 pt-3 pb-2">
+      <button class="nav-button w-full inline-flex items-center gap-2 h-9 px-3 rounded-md border border-sidebar-border bg-sidebar text-muted-foreground text-sm hover:bg-sidebar-accent transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="label flex-1 text-left">Search…</span>
+        <kbd class="label inline-flex h-5 items-center rounded border border-sidebar-border bg-sidebar px-1.5 text-[10px] font-mono">⌘K</kbd>
+      </button>
+    </div>
+
+    <nav class="px-3 pb-2">
+      <p class="group-title px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Navigation</p>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent transition">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        <span class="label">Dashboard</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 16h5"/><path d="M8 8h8"/></svg>
+        <span class="label flex-1 text-left">Creators</span>
+        <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">84</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22V12"/><path d="M21 7 12 12 3 7"/><path d="M21 17 12 22 3 17"/><path d="M3 7v10"/><path d="M21 7v10"/><path d="M12 2 3 7l9 5 9-5z"/></svg>
+        <span class="label flex-1 text-left">Client lists</span>
+        <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">3/10</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium bg-primary/10 text-primary transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
+        <span class="label flex-1 text-left">Campaigns</span>
+        <span class="label inline-flex h-5 items-center rounded bg-primary/20 text-primary px-1.5 text-[10px] font-medium tabular-nums">4</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </button>
+    </nav>
+
+    <div class="px-3 mt-1 pb-2 flex-1 overflow-y-auto">
+      <div class="flex items-center justify-between px-2 mb-1">
+        <p class="group-title text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Active campaigns</p>
+        <button class="group-title text-[11px] text-primary hover:text-primary/80 font-medium">+ New</button>
+      </div>
+      <div class="space-y-0.5">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md bg-sidebar-accent transition">
+          <span class="avatar h-6 w-6 rounded bg-primary/10 text-primary">L</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">limitless loyalty</span>
+            <span class="block text-[11px] text-muted-foreground truncate">R1 ready · 6 approved</span>
+          </span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="avatar h-6 w-6 rounded bg-blue-100 text-blue-700">T</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">Tethermax Q3</span>
+            <span class="block text-[11px] text-muted-foreground truncate">2 lists · shipped</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-success"></span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="avatar h-6 w-6 rounded bg-orange-100 text-orange-700">A</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">ADI launch wave</span>
+            <span class="block text-[11px] text-muted-foreground truncate">R2 in review</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="avatar h-6 w-6 rounded bg-slate-200 text-slate-700">CW</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">Creator Wire demo</span>
+            <span class="block text-[11px] text-muted-foreground truncate">draft</span>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="px-3 py-2 border-t border-sidebar-border">
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-sidebar-accent/60">
+        <span class="h-2 w-2 rounded-full bg-success shrink-0 relative">
+          <span class="absolute inset-0 rounded-full bg-success animate-ping opacity-50"></span>
+        </span>
+        <span class="footer-text flex-1 min-w-0">
+          <span class="block text-[11px] text-muted-foreground leading-none">Last refresh</span>
+          <span class="block text-xs font-medium leading-none mt-0.5">May 10, 5:07 AM</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="px-3 py-3 border-t border-sidebar-border">
+      <button class="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+        <span class="avatar h-8 w-8 rounded-full bg-primary/15 text-primary">NB</span>
+        <span class="footer-text flex-1 min-w-0 text-left">
+          <span class="block text-sm font-medium truncate leading-none">Nick Brutyan</span>
+          <span class="block text-[11px] text-muted-foreground truncate leading-none mt-1">nick.b@lunarstrategy.com</span>
+        </span>
+        <svg class="footer-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="min-w-0 flex flex-col">
+
+    <!-- Top bar -->
+    <header class="h-14 border-b bg-card px-4 sm:px-6 flex items-center gap-3 sticky top-0 z-30">
+      <div class="flex items-center gap-2 min-w-0">
+        <div id="topbar-bread" class="flex items-center text-sm text-muted-foreground min-w-0">
+          <span class="text-foreground font-medium">Campaigns</span>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="hidden md:inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Filters
+        </button>
+        <button id="open-create" class="inline-flex items-center gap-1.5 h-8 rounded-md bg-primary text-primary-foreground px-3 text-sm font-medium hover:bg-primary/90 transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New campaign
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ HUB ============ -->
+    <section data-view="hub" class="view active">
+
+      <!-- Hero -->
+      <div class="px-4 sm:px-6 pt-6 pb-4">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div class="min-w-0">
+            <h1 class="text-[22px] font-semibold leading-tight">Campaigns</h1>
+            <p class="text-sm text-muted-foreground mt-1 max-w-xl">Track shipped rounds, client approvals, and budget allocation across every campaign in one view.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="view-toggle">
+              <button data-mode="table" class="active" title="Table"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+              <button data-mode="cards" title="Cards"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="px-4 sm:px-6 pb-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- KPI 1 -->
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Active campaigns</p>
+          <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">3</p>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-[11px] text-muted-foreground">+1 this month</span>
+            <svg class="spark" width="60" height="20" viewBox="0 0 60 20"><path d="M0 14 L8 10 L16 12 L24 6 L32 8 L40 4 L48 7 L60 3" /></svg>
+          </div>
+        </article>
+        <!-- KPI 2 -->
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Lists shipped</p>
+          <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">5<span class="text-base text-muted-foreground font-normal"> / 8</span></p>
+          <div class="mt-2 flex items-center justify-between">
+            <span class="text-[11px] text-muted-foreground">2 in review</span>
+            <span class="inline-flex h-5 items-center rounded bg-success/10 text-success text-[10px] font-semibold px-1.5">62%</span>
+          </div>
+        </article>
+        <!-- KPI 3 -->
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Pending approvals</p>
+          <p class="mt-2 text-2xl font-semibold tabular-nums leading-none text-amber-600">82</p>
+          <p class="mt-2 text-[11px] text-muted-foreground">across 4 active lists · oldest 6d</p>
+        </article>
+        <!-- KPI 4 -->
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Approved budget</p>
+          <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">$84.5K</p>
+          <div class="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground"><span>of $220K committed</span><span class="text-success">·</span><span class="text-success">38%</span></div>
+        </article>
+        <!-- KPI 5 -->
+        <article class="rounded-xl border bg-card p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Unlinked lists</p>
+          <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">2</p>
+          <button class="mt-2 text-[11px] text-primary font-semibold hover:underline">Attach to a campaign →</button>
+        </article>
+      </div>
+
+      <!-- Sticky filter bar -->
+      <div class="sticky-toolbar px-4 sm:px-6 py-3 flex flex-wrap items-center gap-2">
+        <div class="relative">
+          <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search campaigns, clients, owners…" class="h-8 w-72 max-w-full pl-8 pr-3 rounded-md border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button class="pill active">All <span class="count">3</span></button>
+          <button class="pill">Draft <span class="count">1</span></button>
+          <button class="pill">Active <span class="count">2</span></button>
+          <button class="pill">Paused <span class="count">0</span></button>
+          <button class="pill">Completed <span class="count">1</span></button>
+        </div>
+        <div class="ml-auto flex items-center gap-1.5">
+          <button class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Owner</button>
+          <button class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Dates</button>
+          <button class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></svg> Sort: Recent</button>
+        </div>
+      </div>
+
+      <!-- Unlinked banner -->
+      <div class="px-4 sm:px-6 pt-3">
+        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
+          <span class="h-7 w-7 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          <p class="text-sm text-amber-900 flex-1 min-w-0">
+            <span class="font-semibold">2 client lists</span> aren't attached to a campaign — <span class="underline">tethermax</span> and <span class="underline">ADI</span>. Attach them to track approvals and budget against a campaign.
+          </p>
+          <button class="text-sm font-semibold text-amber-800 hover:text-amber-900 whitespace-nowrap">Attach now →</button>
+        </div>
+      </div>
+
+      <!-- Campaign table -->
+      <div class="px-4 sm:px-6 py-4">
+        <div class="rounded-xl border bg-card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th class="text-left font-semibold py-2.5 pl-4 pr-2 w-8"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></th>
+                  <th class="text-left font-semibold py-2.5 px-2">Campaign</th>
+                  <th class="text-left font-semibold py-2.5 px-2">Status</th>
+                  <th class="text-center font-semibold py-2.5 px-2">Lists</th>
+                  <th class="text-center font-semibold py-2.5 px-2">Creators</th>
+                  <th class="text-center font-semibold py-2.5 px-2">Approvals</th>
+                  <th class="text-right font-semibold py-2.5 px-2">Budget</th>
+                  <th class="text-left font-semibold py-2.5 px-2">Dates</th>
+                  <th class="text-left font-semibold py-2.5 px-2">Owner</th>
+                  <th class="py-2.5 pl-2 pr-4 w-8"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <!-- Row 1 -->
+                <tr class="cursor-pointer" data-row-link="detail">
+                  <td class="py-3 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" onclick="event.stopPropagation()"/></td>
+                  <td class="py-3 px-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="avatar h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700">L</span>
+                      <div class="min-w-0">
+                        <p class="font-medium leading-tight truncate">limitless loyalty</p>
+                        <p class="text-xs text-muted-foreground leading-tight truncate">Limitless</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-2"><span class="status draft"><span class="dot"></span>Draft</span></td>
+                  <td class="py-3 px-2 text-center tabular-nums">
+                    <p class="font-medium">0<span class="text-muted-foreground font-normal"> / 1</span></p>
+                    <p class="text-[11px] text-muted-foreground">1 ready</p>
+                  </td>
+                  <td class="py-3 px-2 text-center tabular-nums font-medium">65</td>
+                  <td class="py-3 px-2 text-center">
+                    <div class="bar w-24 mx-auto"><span style="width:9%;background:hsl(var(--success))"></span><span style="width:5%;background:hsl(var(--destructive))"></span><span style="width:86%;background:hsl(var(--muted-foreground)/.3)"></span></div>
+                    <p class="mt-1 text-[11px] text-muted-foreground tabular-nums">6 ✓ · 56 …</p>
+                  </td>
+                  <td class="py-3 px-2 text-right tabular-nums">
+                    <p class="font-medium">$34,000</p>
+                    <p class="text-[11px] text-muted-foreground">of $50,000</p>
+                  </td>
+                  <td class="py-3 px-2 text-[12.5px] text-muted-foreground whitespace-nowrap">May 14 – Jun 30</td>
+                  <td class="py-3 px-2"><span class="inline-flex items-center gap-1.5"><span class="avatar h-5 w-5 rounded-full bg-purple-100 text-purple-700 text-[10px]">W</span><span class="text-[12.5px]">William</span></span></td>
+                  <td class="py-3 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+                </tr>
+                <!-- Row 2 -->
+                <tr class="cursor-pointer">
+                  <td class="py-3 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" onclick="event.stopPropagation()"/></td>
+                  <td class="py-3 px-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="avatar h-8 w-8 rounded-lg bg-blue-100 text-blue-700">T</span>
+                      <div class="min-w-0">
+                        <p class="font-medium leading-tight truncate">Tethermax Q3 push</p>
+                        <p class="text-xs text-muted-foreground leading-tight truncate">Tether Holdings</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-2"><span class="status active"><span class="dot"></span>Active</span></td>
+                  <td class="py-3 px-2 text-center tabular-nums">
+                    <p class="font-medium">2<span class="text-muted-foreground font-normal"> / 2</span></p>
+                    <p class="text-[11px] text-muted-foreground">all shipped</p>
+                  </td>
+                  <td class="py-3 px-2 text-center tabular-nums font-medium">12</td>
+                  <td class="py-3 px-2 text-center">
+                    <div class="bar w-24 mx-auto"><span style="width:75%;background:hsl(var(--success))"></span><span style="width:8%;background:hsl(var(--destructive))"></span><span style="width:17%;background:hsl(var(--muted-foreground)/.3)"></span></div>
+                    <p class="mt-1 text-[11px] text-muted-foreground tabular-nums">9 ✓ · 1 ✗ · 2 …</p>
+                  </td>
+                  <td class="py-3 px-2 text-right tabular-nums">
+                    <p class="font-medium">$48,500</p>
+                    <p class="text-[11px] text-muted-foreground">of $65,000</p>
+                  </td>
+                  <td class="py-3 px-2 text-[12.5px] text-muted-foreground whitespace-nowrap">Apr 22 – Jul 1</td>
+                  <td class="py-3 px-2"><span class="inline-flex items-center gap-1.5"><span class="avatar h-5 w-5 rounded-full bg-orange-100 text-orange-700 text-[10px]">A</span><span class="text-[12.5px]">Alex</span></span></td>
+                  <td class="py-3 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+                </tr>
+                <!-- Row 3 -->
+                <tr class="cursor-pointer">
+                  <td class="py-3 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" onclick="event.stopPropagation()"/></td>
+                  <td class="py-3 px-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="avatar h-8 w-8 rounded-lg bg-orange-100 text-orange-700">A</span>
+                      <div class="min-w-0">
+                        <p class="font-medium leading-tight truncate">ADI launch wave</p>
+                        <p class="text-xs text-muted-foreground leading-tight truncate">Across DeFi Inc.</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-2"><span class="status active"><span class="dot"></span>Active</span></td>
+                  <td class="py-3 px-2 text-center tabular-nums">
+                    <p class="font-medium">3<span class="text-muted-foreground font-normal"> / 3</span></p>
+                    <p class="text-[11px] text-muted-foreground">R3 in review</p>
+                  </td>
+                  <td class="py-3 px-2 text-center tabular-nums font-medium">18</td>
+                  <td class="py-3 px-2 text-center">
+                    <div class="bar w-24 mx-auto"><span style="width:50%;background:hsl(var(--success))"></span><span style="width:20%;background:hsl(var(--destructive))"></span><span style="width:30%;background:hsl(var(--muted-foreground)/.3)"></span></div>
+                    <p class="mt-1 text-[11px] text-muted-foreground tabular-nums">9 ✓ · 4 ✗ · 5 …</p>
+                  </td>
+                  <td class="py-3 px-2 text-right tabular-nums">
+                    <p class="font-medium">$23,200</p>
+                    <p class="text-[11px] text-muted-foreground">of $50,000</p>
+                  </td>
+                  <td class="py-3 px-2 text-[12.5px] text-muted-foreground whitespace-nowrap">Apr 1 – Jun 15</td>
+                  <td class="py-3 px-2"><span class="inline-flex items-center gap-1.5"><span class="avatar h-5 w-5 rounded-full bg-purple-100 text-purple-700 text-[10px]">W</span><span class="text-[12.5px]">William</span></span></td>
+                  <td class="py-3 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+                </tr>
+                <!-- Row 4 -->
+                <tr class="cursor-pointer">
+                  <td class="py-3 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" onclick="event.stopPropagation()"/></td>
+                  <td class="py-3 px-2">
+                    <div class="flex items-center gap-2.5">
+                      <span class="avatar h-8 w-8 rounded-lg bg-slate-200 text-slate-700">CW</span>
+                      <div class="min-w-0">
+                        <p class="font-medium leading-tight truncate">Creator Wire demo</p>
+                        <p class="text-xs text-muted-foreground leading-tight truncate">Internal</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3 px-2"><span class="status pending"><span class="dot"></span>Completed</span></td>
+                  <td class="py-3 px-2 text-center tabular-nums">
+                    <p class="font-medium">1<span class="text-muted-foreground font-normal"> / 1</span></p>
+                    <p class="text-[11px] text-muted-foreground">closed</p>
+                  </td>
+                  <td class="py-3 px-2 text-center tabular-nums font-medium">3</td>
+                  <td class="py-3 px-2 text-center">
+                    <div class="bar w-24 mx-auto"><span style="width:100%;background:hsl(var(--success))"></span></div>
+                    <p class="mt-1 text-[11px] text-muted-foreground tabular-nums">3 ✓</p>
+                  </td>
+                  <td class="py-3 px-2 text-right tabular-nums">
+                    <p class="font-medium">$8,500</p>
+                    <p class="text-[11px] text-muted-foreground">of $10,000</p>
+                  </td>
+                  <td class="py-3 px-2 text-[12.5px] text-muted-foreground whitespace-nowrap">Mar 1 – Mar 31</td>
+                  <td class="py-3 px-2"><span class="inline-flex items-center gap-1.5"><span class="avatar h-5 w-5 rounded-full bg-emerald-100 text-emerald-700 text-[10px]">N</span><span class="text-[12.5px]">Nick</span></span></td>
+                  <td class="py-3 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="px-4 py-2.5 border-t flex items-center justify-between text-[12.5px] text-muted-foreground">
+            <span>Showing 4 of 4</span>
+            <div class="flex items-center gap-2">
+              <button class="h-7 px-2 rounded border bg-card hover:bg-muted text-foreground">Export</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DETAIL ============ -->
+    <section data-view="detail" class="view">
+
+      <!-- Detail hero -->
+      <div class="px-4 sm:px-6 pt-5 pb-3 border-b bg-card/40">
+        <div class="flex items-start gap-4">
+          <span class="avatar h-14 w-14 rounded-xl bg-emerald-100 text-emerald-700 text-base">L</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="status draft"><span class="dot"></span>Draft</span>
+              <span class="text-[11px] text-muted-foreground">Created May 10, 2026 · last edited 12m ago</span>
+            </div>
+            <h1 class="mt-1.5 text-[22px] font-semibold leading-tight truncate">limitless loyalty</h1>
+            <p class="text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+              <span>Limitless</span>
+              <span class="text-muted-foreground/40">·</span>
+              <span>May 14 – Jun 30, 2026</span>
+              <span class="text-muted-foreground/40">·</span>
+              <span class="inline-flex items-center gap-1"><span class="avatar h-4 w-4 rounded-full bg-purple-100 text-purple-700 text-[9px]">W</span> William</span>
+            </p>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Edit</button>
+            <button class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Duplicate</button>
+            <button id="open-attach" class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted inline-flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Attach list
+            </button>
+            <button class="h-8 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New list for campaign
+            </button>
+            <button class="h-8 w-8 rounded-md border bg-card hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+          </div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <article class="rounded-xl border bg-card p-4">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Lists shipped</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">0<span class="text-base text-muted-foreground font-normal"> / 1</span></p>
+            <div class="mt-2 flex items-center gap-1.5"><span class="status ready"><span class="dot"></span>1 ready</span></div>
+          </article>
+          <article class="rounded-xl border bg-card p-4">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Unique creators</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">65</p>
+            <p class="mt-2 text-[11px] text-muted-foreground">65 slots across 1 list</p>
+          </article>
+          <article class="rounded-xl border bg-card p-4">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Client approvals</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">9<span class="text-base text-muted-foreground font-normal">%</span></p>
+            <div class="mt-2 bar"><span style="width:9%;background:hsl(var(--success))"></span><span style="width:5%;background:hsl(var(--destructive))"></span><span style="width:86%;background:hsl(var(--muted-foreground)/.3)"></span></div>
+            <p class="mt-1.5 text-[11px] text-muted-foreground tabular-nums">6 approved · 3 declined · 56 pending</p>
+          </article>
+          <article class="rounded-xl border bg-card p-4">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Approved budget</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums leading-none">$34K</p>
+            <div class="mt-2 bar"><span style="width:68%;background:hsl(var(--primary))"></span></div>
+            <p class="mt-1.5 text-[11px] text-muted-foreground">$34,000 of $50,000 · $16K remaining</p>
+          </article>
+        </div>
+      </div>
+
+      <!-- Tabs sticky -->
+      <div class="sticky-toolbar px-4 sm:px-6 py-2.5 flex items-center gap-3">
+        <div class="tabs" id="detail-tabs">
+          <button data-tab="overview" class="active">Overview</button>
+          <button data-tab="lists">Client lists <span class="ml-1 text-[10px] tabular-nums text-muted-foreground">1</span></button>
+          <button data-tab="creators">Creators <span class="ml-1 text-[10px] tabular-nums text-muted-foreground">65</span></button>
+          <button data-tab="deliverables">Deliverables</button>
+          <button data-tab="budget">Budget</button>
+          <button data-tab="notes">Notes</button>
+        </div>
+        <div class="ml-auto flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="hidden md:inline">Share link expires Jun 30 · </span>
+          <button class="h-7 px-2 rounded border bg-card hover:bg-muted text-foreground inline-flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy share link
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab: Overview -->
+      <section data-tab-pane="overview" class="tab-pane block px-4 sm:px-6 py-5 space-y-6">
+
+        <!-- Funnel -->
+        <article class="rounded-xl border bg-card p-5">
+          <div class="flex items-end justify-between mb-3">
+            <div>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Creator funnel</p>
+              <h2 class="text-base font-semibold mt-0.5">From shortlist to posted</h2>
+            </div>
+            <button class="text-[12.5px] text-primary font-medium hover:underline">View all 65 creators →</button>
+          </div>
+          <div class="funnel">
+            <div class="step"><p class="lbl">Shortlisted</p><p class="val">65</p></div>
+            <div class="step"><p class="lbl">Sent to client</p><p class="val">65</p></div>
+            <div class="step gain"><p class="lbl">Approved</p><p class="val">6</p></div>
+            <div class="step warn"><p class="lbl">Confirmed</p><p class="val">0</p></div>
+            <div class="step"><p class="lbl">Posted</p><p class="val">0</p></div>
+          </div>
+        </article>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          <!-- Brief -->
+          <article class="rounded-xl border bg-card p-5 lg:col-span-2">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Brief</p>
+                <h2 class="text-base font-semibold mt-0.5">Objective, messaging, do/don't</h2>
+              </div>
+              <button class="text-[12.5px] text-muted-foreground hover:text-foreground"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+            </div>
+            <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+              <div>
+                <dt class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Objective</dt>
+                <dd class="mt-1 text-sm">Drive awareness and quote-post volume around the Limitless loyalty program. Win the Q3 narrative on X.</dd>
+              </div>
+              <div>
+                <dt class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Key messaging</dt>
+                <dd class="mt-1 text-sm">"Go and win" · loyalty tier rewards · early-supporter incentives. Avoid raw shilling, no $LIM ticker mentions.</dd>
+              </div>
+              <div>
+                <dt class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Deliverable mix</dt>
+                <dd class="mt-1 text-sm flex flex-wrap gap-1">
+                  <span class="inline-flex h-5 items-center px-1.5 rounded bg-muted text-[11px]">12 posts</span>
+                  <span class="inline-flex h-5 items-center px-1.5 rounded bg-muted text-[11px]">8 quotes</span>
+                  <span class="inline-flex h-5 items-center px-1.5 rounded bg-muted text-[11px]">3 threads</span>
+                  <span class="inline-flex h-5 items-center px-1.5 rounded bg-muted text-[11px]">2 spaces</span>
+                </dd>
+              </div>
+            </dl>
+          </article>
+
+          <!-- Activity -->
+          <article class="rounded-xl border bg-card p-5">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Activity</p>
+            <h2 class="text-base font-semibold mt-0.5 mb-2">Last 7 days</h2>
+            <div>
+              <div class="tl-row"><span class="tl-dot"></span><div><p class="text-[13px] font-medium leading-tight">Round 1 marked ready</p><p class="text-[11px] text-muted-foreground">Limitless · 65 creators</p></div><span class="text-[11px] text-muted-foreground whitespace-nowrap">12m</span></div>
+              <div class="tl-row"><span class="tl-dot"></span><div><p class="text-[13px] font-medium leading-tight">Altcoin Daily approved</p><p class="text-[11px] text-muted-foreground">+$20K to approved budget</p></div><span class="text-[11px] text-muted-foreground whitespace-nowrap">2h</span></div>
+              <div class="tl-row"><span class="tl-dot muted"></span><div><p class="text-[13px] font-medium leading-tight">Route 2 FI declined</p><p class="text-[11px] text-muted-foreground">Pricing concern flagged</p></div><span class="text-[11px] text-muted-foreground whitespace-nowrap">1d</span></div>
+              <div class="tl-row"><span class="tl-dot muted"></span><div><p class="text-[13px] font-medium leading-tight">Brief updated</p><p class="text-[11px] text-muted-foreground">Owner: William</p></div><span class="text-[11px] text-muted-foreground whitespace-nowrap">2d</span></div>
+            </div>
+            <button class="mt-3 text-[12.5px] text-primary font-medium hover:underline">View full activity →</button>
+          </article>
+
+        </div>
+
+        <!-- Linked lists preview -->
+        <article class="rounded-xl border bg-card overflow-hidden">
+          <div class="px-5 py-3 border-b flex items-center justify-between">
+            <div>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Linked client lists</p>
+              <h2 class="text-base font-semibold mt-0.5">Rounds shipped to the client</h2>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Attach existing
+              </button>
+              <button class="h-8 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New round
+              </button>
+            </div>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th class="text-left font-semibold py-2.5 px-5 w-16">Round</th>
+                <th class="text-left font-semibold py-2.5 px-2">List</th>
+                <th class="text-left font-semibold py-2.5 px-2">Status</th>
+                <th class="text-center font-semibold py-2.5 px-2">Creators</th>
+                <th class="text-center font-semibold py-2.5 px-2">Approvals</th>
+                <th class="text-right font-semibold py-2.5 px-2">Approved $</th>
+                <th class="text-left font-semibold py-2.5 px-2">Shipped</th>
+                <th class="py-2.5 pl-2 pr-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr class="tr-shipped">
+                <td class="py-3 pl-5 pr-2"><span class="round-chip">R1</span></td>
+                <td class="py-3 px-2">
+                  <p class="font-medium">Limitless</p>
+                  <p class="text-[11px] text-muted-foreground">/lists/30fcf78…</p>
+                </td>
+                <td class="py-3 px-2"><span class="status ready"><span class="dot"></span>Ready</span></td>
+                <td class="py-3 px-2 text-center tabular-nums font-medium">65</td>
+                <td class="py-3 px-2 text-center">
+                  <div class="bar w-24 mx-auto"><span style="width:9%;background:hsl(var(--success))"></span><span style="width:5%;background:hsl(var(--destructive))"></span><span style="width:86%;background:hsl(var(--muted-foreground)/.3)"></span></div>
+                  <p class="mt-1 text-[11px] text-muted-foreground tabular-nums">6 ✓ · 3 ✗ · 56 …</p>
+                </td>
+                <td class="py-3 px-2 text-right tabular-nums font-medium">$34,000</td>
+                <td class="py-3 px-2 text-[12.5px] text-muted-foreground">— <span class="text-amber-600">not shipped</span></td>
+                <td class="py-3 pl-2 pr-5 text-right">
+                  <div class="inline-flex items-center gap-1">
+                    <button class="h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" title="Copy link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                    <button class="h-7 px-2.5 rounded border bg-card hover:bg-muted text-[12.5px] font-medium">Open</button>
+                    <button class="h-7 px-2.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-[12.5px] font-medium">Mark shipped</button>
+                    <button class="h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" title="More"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- Mini-roster preview -->
+        <article class="rounded-xl border bg-card overflow-hidden">
+          <div class="px-5 py-3 border-b flex items-center justify-between">
+            <div>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Top approvals</p>
+              <h2 class="text-base font-semibold mt-0.5">6 creators the client has approved</h2>
+            </div>
+            <button data-jump-tab="creators" class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">See all 65 →</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
+            <!-- approved cards -->
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-blue-100 text-blue-700">AD</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">Altcoin Daily</p><p class="text-[11px] text-muted-foreground truncate">2.1M followers · $20,000</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-red-100 text-red-700">AC</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">Ash Crypto</p><p class="text-[11px] text-muted-foreground truncate">2.2M followers · $10,000</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-amber-100 text-amber-700">BO</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">BORED</p><p class="text-[11px] text-muted-foreground truncate">1.6M followers · $2,500</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-violet-100 text-violet-700">HO</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">Hokage</p><p class="text-[11px] text-muted-foreground truncate">69.9K followers · $500</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-emerald-100 text-emerald-700">JW</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">Justin Wu</p><p class="text-[11px] text-muted-foreground truncate">280.4K followers · $500</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+            <div class="rounded-lg border p-3 flex items-center gap-3">
+              <span class="avatar h-9 w-9 rounded-full bg-pink-100 text-pink-700">PC</span>
+              <div class="flex-1 min-w-0"><p class="text-sm font-medium truncate">Picolas Cage</p><p class="text-[11px] text-muted-foreground truncate">16.2K followers · $500</p></div>
+              <span class="status approved"><span class="dot"></span>Approved</span>
+            </div>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- Tab: Creators -->
+      <section data-tab-pane="creators" class="tab-pane hidden px-4 sm:px-6 py-5">
+
+        <!-- Roster toolbar -->
+        <div class="rounded-xl border bg-card overflow-hidden">
+          <div class="px-4 py-3 border-b flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search creators…" class="h-8 w-60 max-w-full pl-8 pr-3 rounded-md border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button class="pill active">All <span class="count">65</span></button>
+              <button class="pill">Approved <span class="count">6</span></button>
+              <button class="pill">Pending <span class="count">56</span></button>
+              <button class="pill">Declined <span class="count">3</span></button>
+              <button class="pill">Confirmed <span class="count">0</span></button>
+            </div>
+            <div class="ml-auto flex items-center gap-1.5">
+              <button class="pill">Round: All</button>
+              <button class="pill">Sort: Followers</button>
+              <button class="pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Add to round</button>
+            </div>
+          </div>
+
+          <!-- Bulk action bar (visible when selection > 0) -->
+          <div class="px-4 py-2 border-b bg-primary/5 text-[12.5px] flex items-center gap-2 hidden" data-when="selection">
+            <span class="font-semibold text-primary">2 selected</span>
+            <span class="text-muted-foreground">·</span>
+            <button class="text-foreground hover:underline">Mark confirmed</button>
+            <button class="text-foreground hover:underline">Move to round</button>
+            <button class="text-foreground hover:underline">Export</button>
+            <button class="ml-auto text-muted-foreground hover:text-foreground">Clear</button>
+          </div>
+
+          <table class="w-full text-sm">
+            <thead class="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th class="text-left font-semibold py-2.5 pl-4 pr-2 w-8"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></th>
+                <th class="text-left font-semibold py-2.5 px-2">Creator</th>
+                <th class="text-center font-semibold py-2.5 px-2">Followers</th>
+                <th class="text-center font-semibold py-2.5 px-2">ER 7d</th>
+                <th class="text-right font-semibold py-2.5 px-2">Price</th>
+                <th class="text-left font-semibold py-2.5 px-2">Client status</th>
+                <th class="text-left font-semibold py-2.5 px-2">AM status</th>
+                <th class="text-left font-semibold py-2.5 px-2">Round</th>
+                <th class="text-left font-semibold py-2.5 px-2">Contact</th>
+                <th class="py-2.5 pl-2 pr-4 w-8"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <!-- Roster rows -->
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-blue-100 text-blue-700">AD</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Altcoin Daily</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@AltcoinDaily · 🇺🇸</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">2.1M</td>
+                <td class="py-2 px-2 text-center tabular-nums">2.52%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$20,000</td>
+                <td class="py-2 px-2"><span class="status approved"><span class="dot"></span>Approved</span></td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Awaiting contact</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><a class="text-primary hover:underline text-[12.5px]" href="#">X DM</a></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-red-100 text-red-700">AC</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Ash Crypto</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@AshCrypto · 🇬🇧</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">2.2M</td>
+                <td class="py-2 px-2 text-center tabular-nums">3.35%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$10,000</td>
+                <td class="py-2 px-2"><span class="status approved"><span class="dot"></span>Approved</span></td>
+                <td class="py-2 px-2"><span class="status confirmed"><span class="dot"></span>Negotiating</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><a class="text-primary hover:underline text-[12.5px]" href="#">Telegram</a></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-amber-100 text-amber-700">BO</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">BORED</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@BoredElonMusk · 🇺🇸</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">1.6M</td>
+                <td class="py-2 px-2 text-center tabular-nums">4.03%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$2,500</td>
+                <td class="py-2 px-2"><span class="status approved"><span class="dot"></span>Approved</span></td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Awaiting contact</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><span class="text-[12.5px] text-muted-foreground">—</span></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-rose-100 text-rose-700">LH</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Layah Heilpern</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@LayahHeilpern · 🇬🇧</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">700.3K</td>
+                <td class="py-2 px-2 text-center tabular-nums">2.99%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$2,000</td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Pending</span></td>
+                <td class="py-2 px-2"><span class="text-[12.5px] text-muted-foreground">—</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><a class="text-primary hover:underline text-[12.5px]" href="#">X DM</a></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-violet-100 text-violet-700">MP</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Michaël van de Poppe</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@CryptoMichNL · 🇳🇱</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">821.2K</td>
+                <td class="py-2 px-2 text-center tabular-nums">1.24%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$2,500</td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Pending</span></td>
+                <td class="py-2 px-2"><span class="text-[12.5px] text-muted-foreground">—</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><a class="text-primary hover:underline text-[12.5px]" href="#">Telegram</a></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-stone-200 text-stone-700">R2</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Route 2 FI</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@Route2FI · 🇨🇦</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">301K</td>
+                <td class="py-2 px-2 text-center tabular-nums">2.51%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$6,000</td>
+                <td class="py-2 px-2"><span class="status declined"><span class="dot"></span>Declined</span></td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Dropped</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><span class="text-[12.5px] text-muted-foreground">—</span></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+              <tr>
+                <td class="py-2 pl-4 pr-2"><input type="checkbox" class="h-3.5 w-3.5 rounded border-input" /></td>
+                <td class="py-2 px-2">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="avatar h-8 w-8 rounded-full bg-emerald-100 text-emerald-700">WO</span>
+                    <div class="min-w-0"><p class="font-medium leading-tight truncate">Wendy O</p><p class="text-[11px] text-muted-foreground leading-tight truncate">@CryptoWendyO · 🇺🇸</p></div>
+                  </div>
+                </td>
+                <td class="py-2 px-2 text-center tabular-nums">464.8K</td>
+                <td class="py-2 px-2 text-center tabular-nums">4.95%</td>
+                <td class="py-2 px-2 text-right tabular-nums font-medium">$2,000</td>
+                <td class="py-2 px-2"><span class="status pending"><span class="dot"></span>Pending</span></td>
+                <td class="py-2 px-2"><span class="text-[12.5px] text-muted-foreground">—</span></td>
+                <td class="py-2 px-2"><span class="round-chip">R1</span></td>
+                <td class="py-2 px-2"><a class="text-primary hover:underline text-[12.5px]" href="#">Telegram</a></td>
+                <td class="py-2 pl-2 pr-4 text-right"><button class="row-action h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="px-4 py-2.5 border-t flex items-center justify-between text-[12.5px] text-muted-foreground">
+            <span>Showing 7 of 65 · grouped from 1 list</span>
+            <div class="flex items-center gap-2">
+              <button class="h-7 px-2 rounded border bg-card hover:bg-muted text-foreground">Load more</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab: Lists -->
+      <section data-tab-pane="lists" class="tab-pane hidden px-4 sm:px-6 py-5 space-y-4">
+        <p class="text-[13px] text-muted-foreground">Manage rounds and replacement lists shipped to the client for this campaign.</p>
+        <article class="rounded-xl border bg-card overflow-hidden">
+          <div class="px-5 py-3 border-b flex items-center justify-between">
+            <h2 class="text-base font-semibold">All rounds (1)</h2>
+            <div class="flex items-center gap-1.5">
+              <button class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Attach existing</button>
+              <button class="h-8 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">+ New round</button>
+            </div>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th class="text-left font-semibold py-2.5 px-5 w-16">Round</th>
+                <th class="text-left font-semibold py-2.5 px-2">List</th>
+                <th class="text-left font-semibold py-2.5 px-2">Status</th>
+                <th class="text-center font-semibold py-2.5 px-2">Creators</th>
+                <th class="text-center font-semibold py-2.5 px-2">Approvals</th>
+                <th class="text-right font-semibold py-2.5 px-2">Approved $</th>
+                <th class="text-left font-semibold py-2.5 px-2">Shipped</th>
+                <th class="py-2.5 pl-2 pr-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr>
+                <td class="py-3 pl-5 pr-2"><span class="round-chip">R1</span></td>
+                <td class="py-3 px-2"><p class="font-medium">Limitless</p><p class="text-[11px] text-muted-foreground">/lists/30fcf78…</p></td>
+                <td class="py-3 px-2"><span class="status ready"><span class="dot"></span>Ready</span></td>
+                <td class="py-3 px-2 text-center tabular-nums font-medium">65</td>
+                <td class="py-3 px-2 text-center"><div class="bar w-24 mx-auto"><span style="width:9%;background:hsl(var(--success))"></span><span style="width:5%;background:hsl(var(--destructive))"></span><span style="width:86%;background:hsl(var(--muted-foreground)/.3)"></span></div><p class="mt-1 text-[11px] text-muted-foreground tabular-nums">6 ✓ · 3 ✗ · 56 …</p></td>
+                <td class="py-3 px-2 text-right tabular-nums font-medium">$34,000</td>
+                <td class="py-3 px-2 text-[12.5px] text-amber-600">not shipped</td>
+                <td class="py-3 pl-2 pr-5 text-right">
+                  <div class="inline-flex items-center gap-1">
+                    <button class="h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center" title="Copy link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                    <button class="h-7 px-2.5 rounded border bg-card hover:bg-muted text-[12.5px] font-medium">Open</button>
+                    <button class="h-7 px-2.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-[12.5px] font-medium">Mark shipped</button>
+                    <button class="h-7 w-7 rounded hover:bg-muted inline-flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+        <div class="rounded-xl border-2 border-dashed border-border bg-card/40 px-5 py-8 text-center">
+          <p class="text-sm font-medium">Need a replacement round?</p>
+          <p class="text-[12.5px] text-muted-foreground mt-0.5 mb-3">When clients decline creators, ship a follow-up list to keep approvals flowing.</p>
+          <button class="h-8 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">+ Create round 2</button>
+        </div>
+      </section>
+
+      <!-- Tab: Deliverables -->
+      <section data-tab-pane="deliverables" class="tab-pane hidden px-4 sm:px-6 py-10 text-center">
+        <div class="max-w-md mx-auto">
+          <div class="h-12 w-12 rounded-full bg-muted mx-auto flex items-center justify-center text-muted-foreground"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3 class="mt-3 text-base font-semibold">Deliverables open after the first contract</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Once a creator moves to Confirmed, deliverable rows (post / quote / thread / space + due date + post URL) will appear here.</p>
+          <p class="mt-3 text-[12.5px] text-muted-foreground">v2 — locked for MVP per <span class="font-medium text-foreground">campaign-management-workflow-proof.md</span> slice 3.</p>
+        </div>
+      </section>
+
+      <!-- Tab: Budget -->
+      <section data-tab-pane="budget" class="tab-pane hidden px-4 sm:px-6 py-5 space-y-5">
+        <article class="rounded-xl border bg-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Budget allocation</p>
+              <h2 class="text-base font-semibold mt-0.5">$50,000 total</h2>
+            </div>
+            <button class="h-8 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Edit budget</button>
+          </div>
+          <div class="bar h-3"><span style="width:68%;background:hsl(var(--success))"></span><span style="width:0%;background:hsl(282 60% 50%)"></span><span style="width:32%;background:hsl(var(--muted-foreground)/.25)"></span></div>
+          <dl class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="rounded-lg border p-3"><dt class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-success"></span>Approved</dt><dd class="mt-1 text-lg font-semibold tabular-nums">$34,000</dd><p class="text-[11px] text-muted-foreground">6 creators</p></div>
+            <div class="rounded-lg border p-3"><dt class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1.5"><span class="h-2 w-2 rounded-full" style="background:hsl(282 60% 50%)"></span>Confirmed</dt><dd class="mt-1 text-lg font-semibold tabular-nums">$0</dd><p class="text-[11px] text-muted-foreground">0 creators</p></div>
+            <div class="rounded-lg border p-3"><dt class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-amber-400"></span>Posted</dt><dd class="mt-1 text-lg font-semibold tabular-nums">$0</dd><p class="text-[11px] text-muted-foreground">0 creators</p></div>
+            <div class="rounded-lg border p-3"><dt class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-muted-foreground/40"></span>Remaining</dt><dd class="mt-1 text-lg font-semibold tabular-nums">$16,000</dd><p class="text-[11px] text-muted-foreground">32% of total</p></div>
+          </dl>
+        </article>
+      </section>
+
+      <!-- Tab: Notes -->
+      <section data-tab-pane="notes" class="tab-pane hidden px-4 sm:px-6 py-5">
+        <article class="rounded-xl border bg-card p-5">
+          <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Internal notes</p>
+          <h2 class="text-base font-semibold mt-0.5 mb-2">Visible only to your team</h2>
+          <textarea rows="6" class="w-full rounded-md border bg-card p-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" placeholder="Add a note about pricing, replacement candidates, client expectations…"></textarea>
+          <div class="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Saved automatically · last edit 2 hours ago</span>
+            <button class="h-7 px-2.5 rounded border bg-card hover:bg-muted text-foreground text-[12.5px]">Add note</button>
+          </div>
+        </article>
+      </section>
+
+    </section>
+
+    <!-- ============ CREATE (drawer) ============ -->
+    <section data-view="create" class="view px-4 sm:px-6 py-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="rounded-xl border bg-card overflow-hidden">
+          <header class="px-6 py-4 border-b flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">New campaign</p>
+              <h2 class="text-lg font-semibold mt-0.5">Set up the campaign in under a minute</h2>
+              <p class="text-[12.5px] text-muted-foreground mt-1">Fill the basics — you can refine objective, brief, and messaging after creating the draft.</p>
+            </div>
+            <span class="status draft"><span class="dot"></span>Step 1 of 2</span>
+          </header>
+
+          <div class="px-6 py-5 space-y-6">
+
+            <!-- Section: Basics -->
+            <section>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Basics</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Campaign name <span class="text-destructive">*</span></span>
+                  <input type="text" placeholder="Q3 creator activation" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Client <span class="text-destructive">*</span></span>
+                  <input type="text" placeholder="Tether Holdings" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Owner</span>
+                  <select class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"><option>William</option><option>Alex</option><option>Nick</option></select>
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Status</span>
+                  <select class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"><option>Draft</option><option>Active</option><option>Paused</option><option>Completed</option></select>
+                </label>
+                <label class="block sm:col-span-2">
+                  <span class="block text-[12.5px] font-medium mb-1">Client logo URL</span>
+                  <input type="url" placeholder="https://example.com/logo.svg" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+              </div>
+            </section>
+
+            <!-- Section: Budget & Timing -->
+            <section>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Budget &amp; timing</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="block sm:col-span-2">
+                  <span class="block text-[12.5px] font-medium mb-1">Total budget</span>
+                  <input type="number" placeholder="50000" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Currency</span>
+                  <select class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"><option>USD</option><option>EUR</option><option>GBP</option></select>
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Starts</span>
+                  <input type="date" class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+                <label class="block">
+                  <span class="block text-[12.5px] font-medium mb-1">Ends</span>
+                  <input type="date" class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                </label>
+                <div class="block sm:col-span-1 flex items-end">
+                  <p class="text-[11px] text-muted-foreground">Defaults to 6-week window if blank</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section: Brief (collapsible) -->
+            <section>
+              <details class="group">
+                <summary class="flex items-center cursor-pointer list-none">
+                  <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Brief &amp; messaging</p>
+                  <span class="ml-2 text-[11px] text-muted-foreground">optional · expand to fill in</span>
+                  <svg class="ml-auto group-open:rotate-180 transition-transform" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </summary>
+                <div class="mt-3 space-y-3">
+                  <label class="block">
+                    <span class="block text-[12.5px] font-medium mb-1">Objective</span>
+                    <input type="text" placeholder="What this campaign needs to achieve" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+                  </label>
+                  <label class="block">
+                    <span class="block text-[12.5px] font-medium mb-1">Brief</span>
+                    <textarea rows="3" placeholder="Internal campaign brief" class="w-full rounded-md border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"></textarea>
+                  </label>
+                  <label class="block">
+                    <span class="block text-[12.5px] font-medium mb-1">Key messaging</span>
+                    <textarea rows="3" placeholder="Messaging angles, do/don't notes" class="w-full rounded-md border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"></textarea>
+                  </label>
+                  <label class="block">
+                    <span class="block text-[12.5px] font-medium mb-1">Internal notes</span>
+                    <textarea rows="2" placeholder="AM notes (private)" class="w-full rounded-md border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"></textarea>
+                  </label>
+                </div>
+              </details>
+            </section>
+
+          </div>
+
+          <footer class="px-6 py-3.5 border-t bg-muted/30 flex items-center justify-between gap-2">
+            <button class="text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+            <div class="flex items-center gap-2">
+              <button class="h-9 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Save draft</button>
+              <button class="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-1.5">
+                Save &amp; attach a list
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </footer>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ATTACH (modal-as-page) ============ -->
+    <section data-view="attach" class="view px-4 sm:px-6 py-6">
+      <div class="max-w-lg mx-auto">
+        <div class="rounded-xl border bg-card overflow-hidden">
+          <header class="px-6 py-4 border-b">
+            <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Attach client list</p>
+            <h2 class="text-lg font-semibold mt-0.5">Add a list to "limitless loyalty"</h2>
+            <p class="text-[12.5px] text-muted-foreground mt-1">Pick an existing unlinked list. The list will become the next round of this campaign.</p>
+          </header>
+          <div class="px-6 py-5">
+            <div class="relative">
+              <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search lists…" class="w-full h-9 pl-8 pr-3 rounded-md border bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" />
+            </div>
+
+            <div class="mt-3 space-y-1.5">
+              <label class="row flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition relative">
+                <input type="radio" name="attach" class="mt-1.5 accent-primary" checked />
+                <span class="avatar h-8 w-8 rounded-lg bg-blue-100 text-blue-700 mt-0.5">T</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">tethermax</p>
+                  <p class="text-[11px] text-muted-foreground">7 creators · $65,000 budget · all approved · ready to ship</p>
+                </div>
+                <span class="status ready"><span class="dot"></span>Ready</span>
+              </label>
+              <label class="row flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition">
+                <input type="radio" name="attach" class="mt-1.5 accent-primary" />
+                <span class="avatar h-8 w-8 rounded-lg bg-orange-100 text-orange-700 mt-0.5">A</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate">ADI</p>
+                  <p class="text-[11px] text-muted-foreground">5 creators · $50,000 budget · 1 approved, 3 pending</p>
+                </div>
+                <span class="status draft"><span class="dot"></span>Draft</span>
+              </label>
+            </div>
+
+            <button class="mt-3 w-full rounded-lg border-2 border-dashed border-border bg-card/40 px-4 py-3 text-sm text-muted-foreground hover:bg-muted/30 hover:text-foreground transition inline-flex items-center justify-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create a new list for this campaign instead
+            </button>
+
+            <!-- preview -->
+            <div class="mt-4 rounded-lg bg-muted/40 p-3">
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Preview · will become Round 2</p>
+              <div class="flex items-center gap-2 text-[12.5px]">
+                <span class="round-chip">R2</span>
+                <span class="font-medium">tethermax</span>
+                <span class="text-muted-foreground">→ limitless loyalty</span>
+              </div>
+              <p class="mt-1 text-[11px] text-muted-foreground">7 creators will be added to the campaign roster. Their approval status from this list will count toward campaign approvals.</p>
+            </div>
+          </div>
+          <footer class="px-6 py-3.5 border-t bg-muted/30 flex items-center justify-between gap-2">
+            <button class="text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+            <button class="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Attach list</button>
+          </footer>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Create modal (overlay version, opened from hub) -->
+<div class="modal-mask" id="create-modal">
+  <div class="modal flex flex-col max-h-[88vh]">
+    <header class="px-6 py-4 border-b flex items-start gap-3">
+      <div class="flex-1 min-w-0">
+        <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">New campaign</p>
+        <h2 class="text-lg font-semibold mt-0.5">Set up the campaign</h2>
+      </div>
+      <button class="h-8 w-8 rounded-md hover:bg-muted inline-flex items-center justify-center" data-close="create-modal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </header>
+    <div class="px-6 py-5 overflow-y-auto space-y-5">
+      <p class="text-[12.5px] text-muted-foreground">For the full flow with grouped sections and brief, switch to the <span class="font-medium text-foreground">Create</span> state in the preview bar.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label class="block"><span class="block text-[12.5px] font-medium mb-1">Campaign name *</span><input type="text" placeholder="Q3 creator activation" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" /></label>
+        <label class="block"><span class="block text-[12.5px] font-medium mb-1">Client *</span><input type="text" placeholder="Client" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" /></label>
+        <label class="block"><span class="block text-[12.5px] font-medium mb-1">Total budget</span><input type="number" placeholder="50000" class="w-full h-9 rounded-md border bg-card px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" /></label>
+        <label class="block"><span class="block text-[12.5px] font-medium mb-1">Currency</span><select class="w-full h-9 rounded-md border bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/40"><option>USD</option></select></label>
+      </div>
+    </div>
+    <footer class="px-6 py-3.5 border-t bg-muted/30 flex items-center justify-end gap-2">
+      <button class="text-sm text-muted-foreground hover:text-foreground" data-close="create-modal">Cancel</button>
+      <button class="h-9 px-3 rounded-md border bg-card text-sm font-medium hover:bg-muted">Save draft</button>
+      <button class="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Save &amp; attach a list</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Attach modal -->
+<div class="modal-mask" id="attach-modal">
+  <div class="modal flex flex-col max-h-[88vh]">
+    <header class="px-6 py-4 border-b flex items-start gap-3">
+      <div class="flex-1 min-w-0">
+        <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Attach client list</p>
+        <h2 class="text-lg font-semibold mt-0.5">limitless loyalty</h2>
+      </div>
+      <button class="h-8 w-8 rounded-md hover:bg-muted inline-flex items-center justify-center" data-close="attach-modal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </header>
+    <div class="px-6 py-5 overflow-y-auto">
+      <p class="text-[12.5px] text-muted-foreground mb-3">Switch to the <span class="font-medium text-foreground">Attach list</span> state in the preview bar to see the full design.</p>
+      <div class="space-y-1.5">
+        <label class="row flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition">
+          <input type="radio" name="m-attach" class="mt-1.5 accent-primary" checked />
+          <span class="avatar h-8 w-8 rounded-lg bg-blue-100 text-blue-700">T</span>
+          <div class="flex-1 min-w-0"><p class="text-sm font-medium">tethermax</p><p class="text-[11px] text-muted-foreground">7 creators · all approved · ready</p></div>
+          <span class="status ready"><span class="dot"></span>Ready</span>
+        </label>
+        <label class="row flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition">
+          <input type="radio" name="m-attach" class="mt-1.5 accent-primary" />
+          <span class="avatar h-8 w-8 rounded-lg bg-orange-100 text-orange-700">A</span>
+          <div class="flex-1 min-w-0"><p class="text-sm font-medium">ADI</p><p class="text-[11px] text-muted-foreground">5 creators · 1 approved · 3 pending</p></div>
+          <span class="status draft"><span class="dot"></span>Draft</span>
+        </label>
+      </div>
+    </div>
+    <footer class="px-6 py-3.5 border-t bg-muted/30 flex items-center justify-end gap-2">
+      <button class="text-sm text-muted-foreground hover:text-foreground" data-close="attach-modal">Cancel</button>
+      <button class="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Attach list</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  // sidebar toggle
+  const shell = document.getElementById('shell');
+  document.getElementById('toggle-sidebar').addEventListener('click', () => shell.classList.toggle('collapsed'));
+
+  // state switcher
+  const breadcrumb = document.getElementById('topbar-bread');
+  const views = document.querySelectorAll('.view');
+  const viewBtns = document.querySelectorAll('.previewbar .seg button[data-view]');
+  function showView(name) {
+    views.forEach(v => v.classList.toggle('active', v.dataset.view === name));
+    viewBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    // breadcrumb
+    if (name === 'hub') breadcrumb.innerHTML = '<span class="text-foreground font-medium">Campaigns</span>';
+    if (name === 'detail') breadcrumb.innerHTML = '<a href="#" data-go-hub class="hover:text-foreground">Campaigns</a><span class="mx-2 text-muted-foreground/50">/</span><span class="text-foreground font-medium truncate max-w-[28ch]">limitless loyalty</span>';
+    if (name === 'create') breadcrumb.innerHTML = '<a href="#" data-go-hub class="hover:text-foreground">Campaigns</a><span class="mx-2 text-muted-foreground/50">/</span><span class="text-foreground font-medium">New campaign</span>';
+    if (name === 'attach') breadcrumb.innerHTML = '<a href="#" data-go-hub class="hover:text-foreground">Campaigns</a><span class="mx-2 text-muted-foreground/50">/</span><a href="#" data-go-detail class="hover:text-foreground">limitless loyalty</a><span class="mx-2 text-muted-foreground/50">/</span><span class="text-foreground font-medium">Attach list</span>';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  viewBtns.forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+  // delegated breadcrumb nav
+  breadcrumb.addEventListener('click', e => {
+    if (e.target.matches('[data-go-hub]')) { e.preventDefault(); showView('hub'); }
+    if (e.target.matches('[data-go-detail]')) { e.preventDefault(); showView('detail'); }
+  });
+
+  // row click → detail
+  document.querySelectorAll('tr[data-row-link]').forEach(tr => {
+    tr.addEventListener('click', () => showView('detail'));
+  });
+  document.querySelectorAll('table tbody tr.cursor-pointer').forEach(tr => {
+    tr.addEventListener('click', () => showView('detail'));
+  });
+
+  // detail tabs
+  const tabBtns = document.querySelectorAll('[data-tab]');
+  const tabPanes = document.querySelectorAll('[data-tab-pane]');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+      tabPanes.forEach(p => p.classList.toggle('hidden', p.dataset.tabPane !== btn.dataset.tab));
+    });
+  });
+  document.querySelectorAll('[data-jump-tab]').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = el.dataset.jumpTab;
+      tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === target));
+      tabPanes.forEach(p => p.classList.toggle('hidden', p.dataset.tabPane !== target));
+    });
+  });
+
+  // modals
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.getElementById('open-create').addEventListener('click', () => openModal('create-modal'));
+  document.getElementById('open-attach').addEventListener('click', () => openModal('attach-modal'));
+  document.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', () => closeModal(el.dataset.close));
+  });
+  document.querySelectorAll('.modal-mask').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-mask.open').forEach(m => m.classList.remove('open'));
+  });
+</script>
+
+</body>
+</html>
