@@ -36,49 +36,48 @@
 </script>
 
 <style>
-/* shadcn tokens — Lunar admin palette + niko-personal warm canvas */
+/* shadcn tokens — themed with the real Lunar admin palette */
 :root {
-  /* warm cream canvas, matches niko-personal */
-  --background: 44 25% 95%;        /* ≈ #F4F2EC */
-  --foreground: 222 47% 8%;        /* near-black */
+  --background: 210 20% 98%;       /* #f8fafc */
+  --foreground: 222 47% 11%;       /* #101828-ish */
 
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 8%;
+  --card-foreground: 222 47% 11%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 8%;
+  --popover-foreground: 222 47% 11%;
 
   /* Lunar green #126453 ≈ hsl(166 70% 23%) */
   --primary: 166 70% 23%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 40 16% 92%;
-  --secondary-foreground: 222 47% 8%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
 
-  --muted: 40 16% 93%;
+  --muted: 220 14% 96%;
   --muted-foreground: 220 9% 46%;
 
-  --accent: 40 16% 92%;
-  --accent-foreground: 222 47% 8%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
 
-  --destructive: 0 73% 41%;
+  --destructive: 0 73% 41%;        /* #b42318 */
   --destructive-foreground: 0 0% 100%;
 
   --success: 152 60% 36%;
   --success-foreground: 0 0% 100%;
 
-  --border: 36 12% 88%;
-  --input: 36 12% 88%;
+  --border: 220 13% 91%;           /* #e4e7ec */
+  --input: 220 13% 91%;
   --ring: 166 70% 23%;
 
-  /* sidebar — sits on warm canvas, slightly lighter than page bg for subtle delineation */
-  --sidebar: 44 25% 96%;
-  --sidebar-foreground: 222 47% 8%;
-  --sidebar-accent: 40 16% 92%;
-  --sidebar-accent-foreground: 222 47% 8%;
-  --sidebar-border: 36 12% 88%;
+  /* sidebar (shadcn sidebar-07) — clean off-white */
+  --sidebar: 210 20% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-accent: 220 14% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
 
-  --radius: 0.875rem;              /* 14px — bigger soft radius from niko */
+  --radius: 0.625rem;
 }
 
 html, body { height: 100%; }
@@ -159,8 +158,8 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
 <body class="bg-background text-foreground font-sans">
 
 <div class="previewbar">
-  <strong class="text-emerald-300 mr-1 font-semibold">● Preview · Admin v3</strong>
-  <span class="opacity-70">v1 architecture · niko-personal style polish (warm canvas, soft radius, pill buttons)</span>
+  <strong class="text-emerald-300 mr-1 font-semibold">● Preview · Admin v1</strong>
+  <span class="opacity-70">shadcn dashboard-01 · sidebar-07 · Lunar green</span>
   <div class="ml-auto"></div>
   <button id="toggle-sidebar" class="text-xs font-medium px-3 py-1 rounded-md bg-white/10 hover:bg-white/15 transition">Toggle sidebar</button>
 </div>
@@ -192,30 +191,25 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
     <!-- Nav -->
     <nav class="px-3 pb-2">
       <p class="group-title px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Navigation</p>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium bg-primary/10 text-primary transition">
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium bg-primary/10 text-primary transition">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
         <span class="label">Dashboard</span>
       </button>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 16h5"/><path d="M8 8h8"/></svg>
         <span class="label flex-1 text-left">Creators</span>
         <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">84</span>
       </button>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/><circle cx="8" cy="15" r="1.5"/><circle cx="14" cy="9" r="1.5"/></svg>
-        <span class="label flex-1 text-left">Campaigns</span>
-        <span class="label inline-flex h-5 items-center rounded bg-success/15 text-success px-1.5 text-[10px] font-semibold tabular-nums">4 live</span>
-      </button>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22V12"/><path d="M21 7 12 12 3 7"/><path d="M21 17 12 22 3 17"/><path d="M3 7v10"/><path d="M21 7v10"/><path d="M12 2 3 7l9 5 9-5z"/></svg>
         <span class="label flex-1 text-left">Client lists</span>
         <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">6/10</span>
       </button>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         <span class="label">Refreshes</span>
       </button>
-      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span class="label">Settings</span>
       </button>
@@ -228,14 +222,14 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
         <button class="group-title text-[11px] text-primary hover:text-primary/80 font-medium">+ New</button>
       </div>
       <div class="space-y-0.5">
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-primary/10 text-primary text-[10px] font-semibold inline-flex items-center justify-center shrink-0">L</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">Limitless</span>
             <span class="block text-[11px] text-muted-foreground truncate">65 creators · 12 approved</span>
           </span>
         </a>
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-blue-100 text-blue-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">T</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">tethermax</span>
@@ -243,7 +237,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </span>
           <span class="inline-block h-1.5 w-1.5 rounded-full bg-success"></span>
         </a>
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-orange-100 text-orange-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">A</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">ADI</span>
@@ -251,21 +245,21 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </span>
           <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
         </a>
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-purple-100 text-purple-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">CW</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">Creator Wire Demo</span>
             <span class="block text-[11px] text-muted-foreground truncate">3 creators</span>
           </span>
         </a>
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-slate-200 text-slate-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">L</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">lunar</span>
             <span class="block text-[11px] text-muted-foreground truncate">6 creators</span>
           </span>
         </a>
-        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-sidebar-accent transition">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
           <span class="h-6 w-6 rounded bg-rose-100 text-rose-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">SB</span>
           <span class="flex-1 min-w-0">
             <span class="block text-sm font-medium truncate">shann boards</span>
@@ -317,16 +311,16 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
         <h1 class="sm:hidden text-base font-semibold">Dashboard</h1>
       </div>
       <div class="ml-auto flex items-center gap-2">
-        <button class="hidden md:inline-flex items-center gap-1.5 h-9 rounded-full border bg-card px-3 text-sm font-medium text-muted-foreground hover:bg-muted transition">
+        <button class="hidden md:inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
           Refresh
         </button>
-        <button class="inline-flex items-center gap-1.5 h-9 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+        <button class="inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span class="hidden sm:inline">Add creator</span>
           <span class="sm:hidden">Add</span>
         </button>
-        <button class="inline-flex items-center gap-1.5 h-9 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
+        <button class="inline-flex items-center gap-1.5 h-8 rounded-md bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           <span class="hidden sm:inline">Create client list</span>
           <span class="sm:hidden">List</span>
@@ -340,7 +334,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
       <!-- KPI cards (shadcn SectionCards) -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Performance overview">
 
-        <div class="@container/card rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
           <div class="p-5 pb-0">
             <div class="flex items-start justify-between gap-2">
               <p class="text-sm text-muted-foreground">Creators</p>
@@ -357,7 +351,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </div>
         </div>
 
-        <div class="@container/card rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
           <div class="p-5 pb-0">
             <div class="flex items-start justify-between gap-2">
               <p class="text-sm text-muted-foreground">Total reach</p>
@@ -374,7 +368,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </div>
         </div>
 
-        <div class="@container/card rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
           <div class="p-5 pb-0">
             <div class="flex items-start justify-between gap-2">
               <p class="text-sm text-muted-foreground">Avg. Lunar score</p>
@@ -393,7 +387,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </div>
         </div>
 
-        <div class="@container/card rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
           <div class="p-5 pb-0">
             <div class="flex items-start justify-between gap-2">
               <p class="text-sm text-muted-foreground">Avg. post price</p>
@@ -412,7 +406,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
       </section>
 
       <!-- Toolbar -->
-      <section class="rounded-2xl border bg-card shadow-sm">
+      <section class="rounded-xl border bg-card shadow-sm">
         <div class="px-3 py-3 flex flex-wrap items-center gap-2">
           <!-- Search -->
           <div class="relative flex-1 min-w-[200px]">
@@ -421,24 +415,24 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           </div>
 
           <!-- Filter chips (popover triggers) -->
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             Country
             <span class="h-4 px-1.5 rounded bg-primary/10 text-primary text-[10px] font-semibold tabular-nums inline-flex items-center">3</span>
           </button>
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             Niche
           </button>
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Owner
           </button>
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
             Priority
           </button>
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             Format
           </button>
@@ -446,7 +440,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
           <span class="hidden lg:inline-block w-px h-6 bg-border mx-1"></span>
 
           <!-- Sort -->
-          <button class="h-9 inline-flex items-center gap-1.5 rounded-full border bg-card px-3 text-sm font-medium hover:bg-muted transition">
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13"/><path d="M3 12h9"/><path d="M3 18h5"/><path d="M21 6V18"/><polyline points="17 14 21 18 17 18"/></svg>
             <span>Sort: Followers</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><polyline points="6 9 12 15 18 9"/></svg>
@@ -456,15 +450,15 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
         <!-- Active filter chips row -->
         <div class="px-3 pb-3 flex flex-wrap items-center gap-1.5 text-xs">
           <span class="text-muted-foreground">3 active:</span>
-          <span class="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 text-primary px-2.5 py-0.5 font-medium">
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
             Min followers: 100k
             <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           </span>
-          <span class="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 text-primary px-2.5 py-0.5 font-medium">
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
             Min Sorsa: 1,000
             <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           </span>
-          <span class="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 text-primary px-2.5 py-0.5 font-medium">
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
             Offers: Video
             <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           </span>
@@ -487,7 +481,7 @@ tbody tr:hover { background: hsl(var(--muted) / .5); }
       </section>
 
       <!-- Data Table -->
-      <section class="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <section class="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div class="table-wrap overflow-auto">
           <table class="w-full text-sm">
             <thead class="bg-muted/40 sticky top-0 z-10">
