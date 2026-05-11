@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Creator OS — Admin Dashboard Preview</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["-apple-system","BlinkMacSystemFont","SF Pro Display","SF Pro Text","Inter","Helvetica Neue","system-ui","sans-serif"],
+        },
+        colors: {
+          border: "hsl(var(--border))",
+          input: "hsl(var(--input))",
+          ring: "hsl(var(--ring))",
+          background: "hsl(var(--background))",
+          foreground: "hsl(var(--foreground))",
+          primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+          secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
+          muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+          accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+          destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
+          success: { DEFAULT: "hsl(var(--success))", foreground: "hsl(var(--success-foreground))" },
+          card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+          sidebar: { DEFAULT: "hsl(var(--sidebar))", foreground: "hsl(var(--sidebar-foreground))", accent: "hsl(var(--sidebar-accent))", "accent-foreground": "hsl(var(--sidebar-accent-foreground))", border: "hsl(var(--sidebar-border))" },
+        },
+        borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+      },
+    },
+  };
+</script>
+
+<style>
+/* shadcn tokens — themed with the real Lunar admin palette */
+:root {
+  --background: 210 20% 98%;       /* #f8fafc */
+  --foreground: 222 47% 11%;       /* #101828-ish */
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* Lunar green #126453 ≈ hsl(166 70% 23%) */
+  --primary: 166 70% 23%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 73% 41%;        /* #b42318 */
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 152 60% 36%;
+  --success-foreground: 0 0% 100%;
+
+  --border: 220 13% 91%;           /* #e4e7ec */
+  --input: 220 13% 91%;
+  --ring: 166 70% 23%;
+
+  /* sidebar (shadcn sidebar-07) — clean off-white */
+  --sidebar: 210 20% 98%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-accent: 220 14% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+
+  --radius: 0.625rem;
+}
+
+html, body { height: 100%; }
+body {
+  font-feature-settings: "ss01","cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+/* preview chrome */
+.previewbar {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  padding: .625rem 1rem;
+  background: hsl(222 47% 8% / .92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  color: hsl(0 0% 96%);
+  border-bottom: 1px solid hsl(0 0% 100% / .08);
+  font-size: 13px;
+}
+.previewbar .seg {
+  display: inline-flex; padding: 2px;
+  border: 1px solid hsl(0 0% 100% / .12); border-radius: 8px;
+  background: hsl(0 0% 100% / .04);
+}
+.previewbar .seg button { padding: 5px 12px; font-size: 12px; font-weight: 500; border-radius: 6px; color: hsl(0 0% 84%); background: transparent; border: 0; cursor: pointer; }
+.previewbar .seg button.active { background: hsl(0 0% 96%); color: hsl(0 0% 10%); }
+
+/* sidebar collapse */
+.shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 44px); }
+.shell.collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.shell.collapsed .sidebar .label { display: none; }
+.shell.collapsed .sidebar .nav-button { justify-content: center; padding-left: 0; padding-right: 0; }
+.shell.collapsed .sidebar .brand-wordmark { display: none; }
+.shell.collapsed .sidebar .group-title { display: none; }
+.shell.collapsed .sidebar .list-item { display: none; }
+.shell.collapsed .sidebar .footer-text { display: none; }
+
+@media (max-width: 1024px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+/* sticky table header */
+.table-wrap { max-height: calc(100vh - 360px); }
+
+/* shimmer */
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted)) 40%, hsl(220 14% 99%) 50%, hsl(var(--muted)) 60%, hsl(var(--muted)) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1400ms linear infinite;
+}
+
+/* sparkline */
+.spark path { fill: none; stroke: hsl(var(--primary)); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.spark.neg path { stroke: hsl(var(--destructive)); }
+.spark .fill { fill: hsl(var(--primary) / .12); stroke: none; }
+.spark.neg .fill { fill: hsl(var(--destructive) / .12); }
+
+/* row hover */
+tbody tr { transition: background 120ms ease; }
+tbody tr:hover { background: hsl(var(--muted) / .5); }
+
+/* sheet (right side panel) */
+.sheet-mask { position: fixed; inset: 0; background: hsl(222 47% 8% / .35); backdrop-filter: blur(2px); z-index: 70; opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+.sheet-mask.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); background: hsl(var(--card)); border-left: 1px solid hsl(var(--border)); box-shadow: -24px 0 48px hsl(222 47% 8% / .12); z-index: 71; transform: translateX(100%); transition: transform 220ms cubic-bezier(.32,.72,0,1); display: flex; flex-direction: column; }
+.sheet.open { transform: translateX(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body class="bg-background text-foreground font-sans">
+
+<div class="previewbar">
+  <strong class="text-emerald-300 mr-1 font-semibold">● Preview · Admin v1</strong>
+  <span class="opacity-70">shadcn dashboard-01 · sidebar-07 · Lunar green</span>
+  <div class="ml-auto"></div>
+  <button id="toggle-sidebar" class="text-xs font-medium px-3 py-1 rounded-md bg-white/10 hover:bg-white/15 transition">Toggle sidebar</button>
+</div>
+
+<div class="shell" id="shell">
+
+  <!-- ===== Sidebar (shadcn sidebar-07 pattern) ===== -->
+  <aside class="sidebar bg-sidebar border-r border-sidebar-border flex flex-col">
+    <!-- Brand -->
+    <div class="px-3 py-4 flex items-center gap-2.5 border-b border-sidebar-border">
+      <div class="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14H3"/><path d="M21 10H3"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="18" r="2"/></svg>
+      </div>
+      <div class="brand-wordmark min-w-0">
+        <div class="font-semibold text-sm leading-none">Creator Wire</div>
+        <div class="text-[11px] text-muted-foreground mt-0.5 leading-none">by Lunar Strategy</div>
+      </div>
+    </div>
+
+    <!-- Search trigger (Cmd+K) -->
+    <div class="px-3 pt-3 pb-2">
+      <button class="nav-button w-full inline-flex items-center gap-2 h-9 px-3 rounded-md border border-sidebar-border bg-sidebar text-muted-foreground text-sm hover:bg-sidebar-accent transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="label flex-1 text-left">Search…</span>
+        <kbd class="label inline-flex h-5 items-center rounded border border-sidebar-border bg-sidebar px-1.5 text-[10px] font-mono">⌘K</kbd>
+      </button>
+    </div>
+
+    <!-- Nav -->
+    <nav class="px-3 pb-2">
+      <p class="group-title px-2 mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Navigation</p>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium bg-primary/10 text-primary transition">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        <span class="label">Dashboard</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 16h5"/><path d="M8 8h8"/></svg>
+        <span class="label flex-1 text-left">Creators</span>
+        <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">84</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22V12"/><path d="M21 7 12 12 3 7"/><path d="M21 17 12 22 3 17"/><path d="M3 7v10"/><path d="M21 7v10"/><path d="M12 2 3 7l9 5 9-5z"/></svg>
+        <span class="label flex-1 text-left">Client lists</span>
+        <span class="label inline-flex h-5 items-center rounded bg-muted px-1.5 text-[10px] font-medium tabular-nums">6/10</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span class="label">Refreshes</span>
+      </button>
+      <button class="nav-button w-full inline-flex items-center gap-2.5 h-9 px-2 rounded-md text-sm font-medium text-foreground/80 hover:bg-sidebar-accent hover:text-foreground transition mt-0.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- Client lists section -->
+    <div class="px-3 mt-1 pb-2 flex-1 overflow-y-auto">
+      <div class="flex items-center justify-between px-2 mb-1">
+        <p class="group-title text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Recent lists</p>
+        <button class="group-title text-[11px] text-primary hover:text-primary/80 font-medium">+ New</button>
+      </div>
+      <div class="space-y-0.5">
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-primary/10 text-primary text-[10px] font-semibold inline-flex items-center justify-center shrink-0">L</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">Limitless</span>
+            <span class="block text-[11px] text-muted-foreground truncate">65 creators · 12 approved</span>
+          </span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-blue-100 text-blue-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">T</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">tethermax</span>
+            <span class="block text-[11px] text-muted-foreground truncate">7 creators · all approved</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-success"></span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-orange-100 text-orange-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">A</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">ADI</span>
+            <span class="block text-[11px] text-muted-foreground truncate">5 creators · 3 pending</span>
+          </span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-purple-100 text-purple-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">CW</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">Creator Wire Demo</span>
+            <span class="block text-[11px] text-muted-foreground truncate">3 creators</span>
+          </span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-slate-200 text-slate-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">L</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">lunar</span>
+            <span class="block text-[11px] text-muted-foreground truncate">6 creators</span>
+          </span>
+        </a>
+        <a href="#" class="list-item flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+          <span class="h-6 w-6 rounded bg-rose-100 text-rose-700 text-[10px] font-semibold inline-flex items-center justify-center shrink-0">SB</span>
+          <span class="flex-1 min-w-0">
+            <span class="block text-sm font-medium truncate">shann boards</span>
+            <span class="block text-[11px] text-muted-foreground truncate">5 creators · 1 declined</span>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Refresh status -->
+    <div class="px-3 py-2 border-t border-sidebar-border">
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-sidebar-accent/60">
+        <span class="h-2 w-2 rounded-full bg-success shrink-0 relative">
+          <span class="absolute inset-0 rounded-full bg-success animate-ping opacity-50"></span>
+        </span>
+        <span class="footer-text flex-1 min-w-0">
+          <span class="block text-[11px] text-muted-foreground leading-none">Last refresh</span>
+          <span class="block text-xs font-medium leading-none mt-0.5">May 10, 5:07 AM</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- User -->
+    <div class="px-3 py-3 border-t border-sidebar-border">
+      <button class="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition">
+        <span class="h-8 w-8 rounded-full bg-primary/15 text-primary text-xs font-semibold inline-flex items-center justify-center shrink-0">NB</span>
+        <span class="footer-text flex-1 min-w-0 text-left">
+          <span class="block text-sm font-medium truncate leading-none">Nick Brutyan</span>
+          <span class="block text-[11px] text-muted-foreground truncate leading-none mt-1">nick.b@lunarstrategy.com</span>
+        </span>
+        <svg class="footer-text" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="min-w-0 flex flex-col">
+    <!-- Top bar -->
+    <header class="h-14 border-b bg-card px-4 sm:px-6 flex items-center gap-3 sticky top-0 z-30">
+      <div class="flex items-center gap-2 min-w-0">
+        <button id="mobile-toggle" class="lg:hidden h-8 w-8 inline-flex items-center justify-center rounded-md border hover:bg-muted">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="hidden sm:flex items-center text-sm text-muted-foreground">
+          <span class="text-foreground font-medium">Dashboard</span>
+          <span class="mx-2 text-muted-foreground/50">/</span>
+          <span>84 creators</span>
+        </div>
+        <h1 class="sm:hidden text-base font-semibold">Dashboard</h1>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="hidden md:inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium text-muted-foreground hover:bg-muted transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          Refresh
+        </button>
+        <button class="inline-flex items-center gap-1.5 h-8 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="hidden sm:inline">Add creator</span>
+          <span class="sm:hidden">Add</span>
+        </button>
+        <button class="inline-flex items-center gap-1.5 h-8 rounded-md bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span class="hidden sm:inline">Create client list</span>
+          <span class="sm:hidden">List</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <div class="flex-1 px-4 sm:px-6 py-5 sm:py-6 space-y-5">
+
+      <!-- KPI cards (shadcn SectionCards) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Performance overview">
+
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+          <div class="p-5 pb-0">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm text-muted-foreground">Creators</p>
+              <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+                +12
+              </span>
+            </div>
+            <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">84</p>
+          </div>
+          <div class="p-5 pt-3 space-y-1.5 text-sm">
+            <p class="font-medium leading-none">+12 added this month</p>
+            <p class="text-muted-foreground">Roster up 17% vs. April</p>
+          </div>
+        </div>
+
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+          <div class="p-5 pb-0">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm text-muted-foreground">Total reach</p>
+              <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+                +1.2M
+              </span>
+            </div>
+            <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">19.5M</p>
+          </div>
+          <div class="p-5 pt-3 space-y-1.5 text-sm">
+            <p class="font-medium leading-none">+6.5% vs. last 30d</p>
+            <p class="text-muted-foreground">Followers across roster</p>
+          </div>
+        </div>
+
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+          <div class="p-5 pb-0">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm text-muted-foreground">Avg. Lunar score</p>
+              <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums text-success shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+                +180
+              </span>
+            </div>
+            <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">1,460</p>
+          </div>
+          <div class="p-5 pt-3 space-y-2 text-sm">
+            <div class="h-1.5 w-full rounded-full bg-secondary overflow-hidden flex">
+              <div style="width: 72%" class="bg-primary"></div>
+            </div>
+            <p class="text-muted-foreground">72% of roster above target (1,000)</p>
+          </div>
+        </div>
+
+        <div class="@container/card rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden bg-gradient-to-t from-primary/5 to-card">
+          <div class="p-5 pb-0">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm text-muted-foreground">Avg. post price</p>
+              <span class="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                $120
+              </span>
+            </div>
+            <p class="mt-2 text-3xl font-semibold tabular-nums leading-none tracking-tight">$2,435</p>
+          </div>
+          <div class="p-5 pt-3 space-y-1.5 text-sm">
+            <p class="font-medium leading-none">62 creators with rates</p>
+            <p class="text-muted-foreground">22 still missing pricing</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toolbar -->
+      <section class="rounded-xl border bg-card shadow-sm">
+        <div class="px-3 py-3 flex flex-wrap items-center gap-2">
+          <!-- Search -->
+          <div class="relative flex-1 min-w-[200px]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" placeholder="Search by name, handle, niche…" class="h-9 w-full rounded-md border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" />
+          </div>
+
+          <!-- Filter chips (popover triggers) -->
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Country
+            <span class="h-4 px-1.5 rounded bg-primary/10 text-primary text-[10px] font-semibold tabular-nums inline-flex items-center">3</span>
+          </button>
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            Niche
+          </button>
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Owner
+          </button>
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Priority
+          </button>
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Format
+          </button>
+
+          <span class="hidden lg:inline-block w-px h-6 bg-border mx-1"></span>
+
+          <!-- Sort -->
+          <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 text-sm font-medium hover:bg-muted transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13"/><path d="M3 12h9"/><path d="M3 18h5"/><path d="M21 6V18"/><polyline points="17 14 21 18 17 18"/></svg>
+            <span>Sort: Followers</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <!-- Active filter chips row -->
+        <div class="px-3 pb-3 flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-muted-foreground">3 active:</span>
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
+            Min followers: 100k
+            <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
+            Min Sorsa: 1,000
+            <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 text-primary px-2 py-0.5 font-medium">
+            Offers: Video
+            <button class="hover:opacity-70"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </span>
+          <button class="ml-1 text-muted-foreground hover:text-foreground underline underline-offset-2">Clear all</button>
+        </div>
+      </section>
+
+      <!-- Bulk action bar (visible only when rows selected) -->
+      <section id="bulk-bar" class="hidden rounded-xl border bg-primary/5 border-primary/20 px-4 py-2.5 flex items-center justify-between">
+        <span class="text-sm font-medium text-primary"><span id="sel-count">3</span> creators selected</span>
+        <div class="flex items-center gap-2">
+          <button class="h-8 inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-card px-3 text-xs font-medium hover:bg-primary/10 transition">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12"/><path d="M21 7 12 12 3 7"/><path d="M12 2 3 7l9 5 9-5z"/></svg>
+            Add to client list
+          </button>
+          <button class="h-8 inline-flex items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium hover:bg-muted transition">Set owner</button>
+          <button class="h-8 inline-flex items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-medium hover:bg-muted transition">Set priority</button>
+          <button class="h-8 inline-flex items-center gap-1.5 rounded-md text-destructive hover:bg-destructive/10 px-3 text-xs font-medium transition">Remove</button>
+        </div>
+      </section>
+
+      <!-- Data Table -->
+      <section class="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div class="table-wrap overflow-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-muted/40 sticky top-0 z-10">
+              <tr class="border-b">
+                <th class="w-10 text-center pl-4 py-2.5"><input type="checkbox" class="rounded" id="select-all"></th>
+                <th class="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <button class="inline-flex items-center gap-1 hover:text-foreground">Creator</button>
+                </th>
+                <th class="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Country</th>
+                <th class="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Niche</th>
+                <th class="text-right px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <button class="inline-flex items-center gap-1 hover:text-foreground">
+                    Followers
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </th>
+                <th class="text-right px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sorsa</th>
+                <th class="text-right px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">30d Δ</th>
+                <th class="text-right px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Post price</th>
+                <th class="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Owner</th>
+                <th class="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Priority</th>
+                <th class="w-10 pr-4 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y"></tbody>
+          </table>
+        </div>
+
+        <!-- Footer / pagination -->
+        <div class="px-4 py-3 border-t flex flex-wrap items-center justify-between gap-3 text-sm">
+          <p class="text-muted-foreground">Showing <span class="font-medium text-foreground">1–10</span> of <span class="font-medium text-foreground">84</span> creators</p>
+          <div class="inline-flex items-center gap-1">
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-muted-foreground hover:bg-muted disabled:opacity-50" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-sm font-medium bg-primary text-primary-foreground">1</button>
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-sm font-medium hover:bg-muted">2</button>
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-sm font-medium hover:bg-muted">3</button>
+            <span class="px-1 text-muted-foreground">…</span>
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card text-sm font-medium hover:bg-muted">9</button>
+            <button class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-card hover:bg-muted">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== Edit Sheet (slides from right; replaces centered modal) ===== -->
+<div class="sheet-mask" id="sheet-mask"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-labelledby="sheet-title">
+  <div class="px-5 py-4 border-b flex items-center gap-3">
+    <span class="h-9 w-9 rounded-full bg-primary/10 text-primary text-xs font-semibold inline-flex items-center justify-center shrink-0">AC</span>
+    <div class="flex-1 min-w-0">
+      <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Edit creator</p>
+      <h2 id="sheet-title" class="text-lg font-semibold leading-tight truncate">Ash Crypto</h2>
+    </div>
+    <button class="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted" id="sheet-close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block">
+        <span class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Country</span>
+        <input class="mt-1 h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/30" value="Europe">
+      </label>
+      <label class="block">
+        <span class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Owner</span>
+        <input class="mt-1 h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/30" value="Lunar Owned">
+      </label>
+      <label class="block col-span-2">
+        <span class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Priority</span>
+        <div class="mt-1 inline-flex w-full items-center gap-1 rounded-md border bg-muted p-1">
+          <button class="flex-1 h-7 rounded text-xs font-medium hover:bg-card transition">Prio 1</button>
+          <button class="flex-1 h-7 rounded text-xs font-medium bg-card shadow-sm">Prio 2</button>
+          <button class="flex-1 h-7 rounded text-xs font-medium hover:bg-card transition">Prio 3</button>
+          <button class="flex-1 h-7 rounded text-xs font-medium hover:bg-card transition">No prio</button>
+        </div>
+      </label>
+    </div>
+
+    <label class="block">
+      <span class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Niches</span>
+      <input class="mt-1 h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/30" value="Ethereum, Trading">
+      <span class="block mt-1 text-[11px] text-muted-foreground">Comma-separated</span>
+    </label>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Rate card</p>
+      <div class="grid grid-cols-3 gap-2">
+        <label class="block">
+          <span class="text-[11px] text-muted-foreground">Post</span>
+          <input class="mt-0.5 h-9 w-full rounded-md border border-input bg-card px-3 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/30" value="10,000">
+        </label>
+        <label class="block">
+          <span class="text-[11px] text-muted-foreground">Quote</span>
+          <input class="mt-0.5 h-9 w-full rounded-md border border-input bg-card px-3 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/30" value="10,000">
+        </label>
+        <label class="block">
+          <span class="text-[11px] text-muted-foreground">Thread</span>
+          <input class="mt-0.5 h-9 w-full rounded-md border border-input bg-card px-3 text-sm tabular-nums text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" value="—">
+        </label>
+        <label class="block">
+          <span class="text-[11px] text-muted-foreground">Video</span>
+          <input class="mt-0.5 h-9 w-full rounded-md border border-input bg-card px-3 text-sm tabular-nums text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" value="—">
+        </label>
+        <label class="block">
+          <span class="text-[11px] text-muted-foreground">Livestream</span>
+          <input class="mt-0.5 h-9 w-full rounded-md border border-input bg-card px-3 text-sm tabular-nums text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30" value="—">
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Formats offered</p>
+      <div class="grid grid-cols-3 gap-2">
+        <label class="cursor-pointer flex items-center gap-2 h-9 rounded-md border bg-card px-2.5 has-[:checked]:bg-primary/5 has-[:checked]:border-primary/30">
+          <input type="checkbox" class="rounded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          <span class="text-xs font-medium">Video</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2 h-9 rounded-md border bg-card px-2.5 has-[:checked]:bg-primary/5 has-[:checked]:border-primary/30">
+          <input type="checkbox" class="rounded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="text-xs font-medium">Thread</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2 h-9 rounded-md border bg-card px-2.5 has-[:checked]:bg-primary/5 has-[:checked]:border-primary/30">
+          <input type="checkbox" class="rounded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M20.07 3.93a10 10 0 0 1 0 16.14"/><path d="M3.93 20.07a10 10 0 0 1 0-16.14"/></svg>
+          <span class="text-xs font-medium">Livestream</span>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="px-5 py-3 border-t flex items-center justify-between bg-muted/30">
+    <button class="text-sm text-destructive hover:bg-destructive/10 h-9 px-3 rounded-md font-medium transition">Delete creator</button>
+    <div class="flex items-center gap-2">
+      <button class="h-9 inline-flex items-center gap-1.5 rounded-md border bg-card px-3 text-sm font-medium hover:bg-muted transition" id="sheet-cancel">Cancel</button>
+      <button class="h-9 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Save changes
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // ============== ROW DATA & RENDER ==============
+  const creators = [
+    { id:1, name:"Ash Crypto", handle:"AshCrypto", initials:"AC", color:"bg-amber-100 text-amber-700", verified:true, country:"Europe", niches:["Ethereum","Trading"], followers:"2.2M", sorsa:1637, sparkUp:true, d30:9.13, post:10000, owner:"Lunar Owned", priority:"Prio 2", priorityClass:"bg-primary/10 text-primary border-primary/20" },
+    { id:2, name:"Altcoin Daily", handle:"AltcoinDaily", initials:"AD", color:"bg-blue-100 text-blue-700", verified:true, country:"United States", niches:["Ethereum","Solana"], followers:"2.1M", sorsa:1924, sparkUp:false, d30:-3.06, post:18500, owner:"Adam W.", priority:"Prio 1", priorityClass:"bg-amber-100 text-amber-700 border-amber-200" },
+    { id:3, name:"Crypto Rover", handle:"cryptorover", initials:"CR", color:"bg-orange-100 text-orange-700", verified:false, country:"Netherlands", niches:["Trading","Founder"], followers:"1.6M", sorsa:1165, sparkUp:true, d30:3.90, post:8800, owner:"Lunar Owned", priority:"Prio 2", priorityClass:"bg-primary/10 text-primary border-primary/20" },
+    { id:4, name:"BORED", handle:"BoredElonMusk", initials:"B", color:"bg-emerald-100 text-emerald-700", verified:false, country:"United States", niches:["Shitposter"], followers:"1.6M", sorsa:3093, sparkUp:true, d30:4.60, post:6500, owner:"Nick B.", priority:"Prio 2", priorityClass:"bg-primary/10 text-primary border-primary/20" },
+    { id:5, name:"WallStreetBets", handle:"wallstreetbets", initials:"W", color:"bg-rose-100 text-rose-700", verified:true, country:"United States", niches:["AI","DeFi"], followers:"1.2M", sorsa:2192, sparkUp:true, d30:14.20, post:24000, owner:"Adam W.", priority:"Prio 1", priorityClass:"bg-amber-100 text-amber-700 border-amber-200" },
+    { id:6, name:"Michaël van de Poppe", handle:"CryptoMichNL", initials:"MP", color:"bg-violet-100 text-violet-700", verified:true, country:"Netherlands", niches:["DeFi","Ethereum","Trading"], followers:"821.2K", sorsa:1502, sparkUp:true, d30:9.30, post:14200, owner:"Lunar Owned", priority:"Prio 1", priorityClass:"bg-amber-100 text-amber-700 border-amber-200" },
+    { id:7, name:"Sasha Hodler", handle:"sashahodler", initials:"SH", color:"bg-slate-100 text-slate-700", verified:false, country:"USA", niches:["DeFi","AI"], followers:"412K", sorsa:1240, sparkUp:true, d30:24.50, post:5000, owner:"Nick B.", priority:"Prio 3", priorityClass:"bg-slate-100 text-slate-700 border-slate-200" },
+    { id:8, name:"Maya Nakamoto", handle:"mayanakamoto", initials:"MN", color:"bg-purple-100 text-purple-700", verified:false, country:"UK", niches:["Trading"], followers:"96K", sorsa:620, sparkUp:false, d30:-12.40, post:2500, owner:"Adam W.", priority:"No prio", priorityClass:"bg-muted text-muted-foreground border-border" },
+    { id:9, name:"Daria Chain", handle:"dariachain", initials:"DC", color:"bg-teal-100 text-teal-700", verified:false, country:"Portugal", niches:["AI","NFT"], followers:"248K", sorsa:1560, sparkUp:true, d30:9.20, post:3200, owner:"Lunar Owned", priority:"Prio 3", priorityClass:"bg-slate-100 text-slate-700 border-slate-200" },
+    { id:10, name:"Ryo Kondo", handle:"ryokondo", initials:"RK", color:"bg-pink-100 text-pink-700", verified:true, country:"Japan", niches:["VC","TradFi"], followers:"178K", sorsa:980, sparkUp:true, d30:18.30, post:4200, owner:"Lunar Owned", priority:"Prio 2", priorityClass:"bg-primary/10 text-primary border-primary/20" },
+  ];
+
+  // Generate a tiny SVG sparkline path
+  function sparkSvg(up) {
+    const points = up
+      ? [20,18,16,15,14,11,9,6]
+      : [9,10,8,12,11,14,12,16];
+    const w = 64, h = 20;
+    const xs = points.map((_,i) => (i/(points.length-1))*w);
+    const ys = points.map(v => v);
+    let d = `M ${xs[0]} ${ys[0]}`;
+    for (let i=1; i<points.length; i++) d += ` L ${xs[i]} ${ys[i]}`;
+    const fill = `${d} L ${w} ${h} L 0 ${h} Z`;
+    return `<svg class="spark ${up?'':'neg'}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path class="fill" d="${fill}"/><path d="${d}"/></svg>`;
+  }
+
+  const verifiedSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="hsl(166 70% 23%)" class="shrink-0"><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/></svg>`;
+
+  const rowsHtml = creators.map(c => `
+    <tr data-id="${c.id}">
+      <td class="pl-4 py-2.5 text-center"><input type="checkbox" class="rounded row-check"></td>
+      <td class="px-3 py-2.5">
+        <div class="flex items-center gap-2.5">
+          <span class="h-9 w-9 rounded-full ${c.color} text-xs font-semibold inline-flex items-center justify-center shrink-0">${c.initials}</span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1 font-medium text-sm truncate">
+              ${c.name}
+              ${c.verified ? verifiedSvg : ''}
+            </div>
+            <div class="text-xs text-muted-foreground truncate">@${c.handle}</div>
+          </div>
+        </div>
+      </td>
+      <td class="px-3 py-2.5 text-sm">${c.country}</td>
+      <td class="px-3 py-2.5">
+        <div class="flex flex-wrap gap-1">
+          ${c.niches.slice(0,2).map(n => `<span class="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium">${n}</span>`).join('')}
+          ${c.niches.length > 2 ? `<span class="inline-flex items-center rounded-md text-[11px] text-muted-foreground">+${c.niches.length-2}</span>` : ''}
+        </div>
+      </td>
+      <td class="px-3 py-2.5 text-sm font-medium tabular-nums text-right">${c.followers}</td>
+      <td class="px-3 py-2.5 text-right">
+        <div class="inline-flex items-center gap-2 justify-end">
+          ${sparkSvg(c.sparkUp)}
+          <span class="text-sm font-medium tabular-nums">${c.sorsa.toLocaleString()}</span>
+        </div>
+      </td>
+      <td class="px-3 py-2.5 text-right">
+        <span class="text-sm font-medium tabular-nums ${c.d30 >= 0 ? 'text-success' : 'text-destructive'}">${c.d30 >= 0 ? '+' : ''}${c.d30.toFixed(2)}</span>
+      </td>
+      <td class="px-3 py-2.5 text-sm tabular-nums text-right">$${c.post.toLocaleString()}</td>
+      <td class="px-3 py-2.5">
+        <span class="inline-flex items-center gap-1.5 text-xs">
+          <span class="h-5 w-5 rounded-full bg-muted text-muted-foreground text-[9px] font-semibold inline-flex items-center justify-center">${c.owner.split(' ').map(x=>x[0]).join('').slice(0,2)}</span>
+          <span class="text-muted-foreground truncate max-w-[110px]">${c.owner}</span>
+        </span>
+      </td>
+      <td class="px-3 py-2.5">
+        <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${c.priorityClass}">${c.priority}</span>
+      </td>
+      <td class="pr-4 py-2.5 text-right">
+        <button class="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition row-edit" title="Edit ${c.name}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+  document.querySelector('tbody').innerHTML = rowsHtml;
+
+  // ============== INTERACTIONS ==============
+  // Sidebar collapse
+  const shell = document.getElementById('shell');
+  document.getElementById('toggle-sidebar').addEventListener('click', () => shell.classList.toggle('collapsed'));
+
+  // Sheet open/close
+  const sheet = document.getElementById('sheet');
+  const mask = document.getElementById('sheet-mask');
+  const openSheet = () => { sheet.classList.add('open'); mask.classList.add('open'); };
+  const closeSheet = () => { sheet.classList.remove('open'); mask.classList.remove('open'); };
+  document.querySelectorAll('.row-edit').forEach(b => b.addEventListener('click', openSheet));
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+  document.getElementById('sheet-cancel').addEventListener('click', closeSheet);
+  mask.addEventListener('click', closeSheet);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+  // Row selection → bulk action bar
+  const bulkBar = document.getElementById('bulk-bar');
+  const selCount = document.getElementById('sel-count');
+  const selAll = document.getElementById('select-all');
+  function updateBulk() {
+    const checked = document.querySelectorAll('.row-check:checked').length;
+    if (checked === 0) bulkBar.classList.add('hidden');
+    else { bulkBar.classList.remove('hidden'); bulkBar.classList.add('flex'); selCount.textContent = checked; }
+  }
+  document.querySelectorAll('.row-check').forEach(cb => cb.addEventListener('change', updateBulk));
+  selAll.addEventListener('change', () => {
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = selAll.checked);
+    updateBulk();
+  });
+</script>
+
+</body>
+</html>
